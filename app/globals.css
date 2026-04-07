@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #fff8ee;
+  --color-bg-alt: #f4ead9;
+  --color-ink: #1e2225;
+  --color-ink-soft: #4f5961;
+  --color-line: #d8c5a8;
+  --color-accent: #b3392f;
+  --color-accent-2: #0d6d63;
+  --color-accent-3: #d9811b;
+  --color-panel: #fffcf6;
+  --color-card: #fffef9;
+  --color-warm-100: #fff5e6;
+  --color-warm-200: #f5e6d1;
+  --color-warm-300: #e6c79a;
+  --color-warm-400: #dcc3a2;
+  --color-warm-500: #cfb797;
+  --color-warm-600: #d8c5a8;
+  --color-warm-700: #5f4f3f;
+  --color-warm-800: #4d4034;
+  --color-warm-900: #493f34;
+  --radius-panel: 18px;
+  --radius-card: 14px;
+  --radius-input: 10px;
+  --radius-pill: 999px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body), "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at 90% 10%, #ffd9a633 0, transparent 42%),
+    radial-gradient(circle at 8% 20%, #75a99f2e 0, transparent 35%),
+    linear-gradient(140deg, var(--color-bg) 0%, var(--color-bg-alt) 100%);
+  line-height: 1.4;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading), "Fraunces", "Iowan Old Style", "Palatino Linotype", serif;
+}
+
+.bg-shape {
+  position: fixed;
+  z-index: -1;
+  border-radius: 999px;
+  filter: blur(26px);
+  opacity: 0.28;
+}
+
+.bg-shape-a {
+  width: 320px;
+  height: 320px;
+  background: #f29c36;
+  top: -120px;
+  right: -80px;
+}
+
+.bg-shape-b {
+  width: 360px;
+  height: 360px;
+  background: #4f9188;
+  bottom: -150px;
+  left: -100px;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--color-accent);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal {
+  animation: rise 560ms ease both;
+}
+
+@keyframes pdfProgressShift {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 220% 0%; }
+}
+
+@media (max-width: 640px) {
+  main {
+    width: calc(100% - 1rem) !important;
+    margin-top: 1rem !important;
+  }
+
+  .reveal {
+    padding-left: 0.85rem;
+    padding-right: 0.85rem;
+  }
+}
