@@ -10,6 +10,7 @@ import {
 import DNARadarChart from "./RadarChart";
 import MixBars from "./MixBars";
 import ProfileCatalog from "./ProfileCatalog";
+import ContributionChart from "./ContributionChart";
 
 export default function ResultsPanel() {
   const { report, locale, t } = useDNA();
@@ -25,6 +26,8 @@ export default function ResultsPanel() {
     topDrivers,
     keyRejection,
     jsonPayload,
+    artworkContributions,
+    representative,
   } = report;
 
   const matchName = match.confidence === "hybrid"
@@ -122,6 +125,14 @@ export default function ResultsPanel() {
         <article className="col-span-full rounded-[var(--radius-card)] border border-[#dfcfb8] bg-[#fffdf8] p-4">
           <h3 className="m-0 mb-2 text-lg">{t.profileCatalogTitle}</h3>
           <ProfileCatalog distribution={profileDistribution} locale={locale} />
+        </article>
+
+        {/* Artwork contribution chart */}
+        <article className="col-span-full rounded-[var(--radius-card)] border border-[#dfcfb8] bg-[#fffdf8] p-4">
+          <h3 className="m-0 mb-2 text-lg">{t.representativeCardTitle}</h3>
+          <h4 className="m-0 mb-1 text-base">{t.contributionChartTitle}</h4>
+          <p className="mb-3 text-[0.82rem] text-ink-soft">{t.contributionChartIntro}</p>
+          <ContributionChart contributions={artworkContributions} representative={representative} />
         </article>
 
         {/* JSON output */}

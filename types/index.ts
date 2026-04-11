@@ -120,6 +120,40 @@ export type StatusLabel =
   | "market_hunter"
   | "adaptive_collector";
 
+export interface ArtworkContribution {
+  entryId: string;
+  chamber: ChamberKey;
+  slot: number;
+  artworkTitle: string;
+  artistName: string;
+  imageUrl: string;
+  source: string;
+  scores: AxisScores;
+  volume: number;
+  volumeShare: number;
+  distanceToProfile: number;
+  impactDistance: number;
+  impactShare: number;
+  axisContribution: AxisScores;
+  profileContributionScore: number;
+}
+
+export interface RepresentativeArtworks {
+  most: ArtworkContribution | null;
+  least: ArtworkContribution | null;
+}
+
+export interface BoxplotStats {
+  min: number;
+  q1: number;
+  median: number;
+  q3: number;
+  max: number;
+  iqr: number;
+  lowerFence: number;
+  upperFence: number;
+}
+
 export interface Report {
   averages: AxisScores;
   match: ArchetypeMatch;
@@ -130,4 +164,6 @@ export interface Report {
   topDrivers: MixItem[];
   keyRejection: MixItem;
   jsonPayload: unknown[];
+  artworkContributions: ArtworkContribution[];
+  representative: RepresentativeArtworks;
 }

@@ -76,6 +76,23 @@ export interface UiStrings {
   artworkCountFiltered: string;
   entryHint: string;
   assignForSlot: string;
+  representativeCardTitle: string;
+  contributionChartTitle: string;
+  contributionChartIntro: string;
+  contributionAxisY: string;
+  contributionAxisX: string;
+  contributionChartLegend: string;
+  representativeMost: string;
+  representativeLeast: string;
+  representativeNoData: string;
+  contributionInBox: string;
+  contributionBelowBox: string;
+  contributionAboveBox: string;
+  contributionOutlier: string;
+  contributionRank: string;
+  contributionImpactShare: string;
+  contributionDistance: string;
+  contributionTopAxes: string;
 }
 
 export const UI_STRINGS: Record<Locale, UiStrings> = {
@@ -160,6 +177,23 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     artworkCountFiltered: "{shown} van {total} artworks in bibliotheek",
     entryHint: "Kamer {n} van 3 · Duplicaten zijn toegestaan indien dat inhoudelijk klopt.",
     assignForSlot: "Selecteer voor {chamber} · {slot}",
+    representativeCardTitle: "Representativiteit van kunstwerken",
+    contributionChartTitle: "Bijdrage per kunstwerk (lollipop)",
+    contributionChartIntro: "Hoe hoger een werk scoort, hoe sterker het je profiel mee bepaalt. Werken boven Q3 zijn het meest representatief; werken onder Q1 dragen het minst bij.",
+    contributionAxisY: "Profielbijdrage-score",
+    contributionAxisX: "Kunstwerken (laag → hoog)",
+    contributionChartLegend: "Gesorteerde lollipop chart (laag naar hoog): elk punt = één kunstwerk. Q1, mediaan en Q3 tonen de boxplot-drempels.",
+    representativeMost: "Meest representatief",
+    representativeLeast: "Minst representatief",
+    representativeNoData: "Geen bijdragedata beschikbaar.",
+    contributionInBox: "Binnen IQR",
+    contributionBelowBox: "Onder Q1",
+    contributionAboveBox: "Boven Q3",
+    contributionOutlier: "Uitbijter",
+    contributionRank: "Rang",
+    contributionImpactShare: "Impact-aandeel",
+    contributionDistance: "Afstand",
+    contributionTopAxes: "Sterkste assen",
   },
   en: {
     languageLabel: "Language",
@@ -242,6 +276,23 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     artworkCountFiltered: "{shown} of {total} artworks in library",
     entryHint: "Chamber {n} of 3 · Duplicates are allowed if it makes sense.",
     assignForSlot: "Select for {chamber} · {slot}",
+    representativeCardTitle: "Artwork Representativeness",
+    contributionChartTitle: "Contribution per artwork (lollipop)",
+    contributionChartIntro: "The higher an artwork scores, the more it shapes your profile. Works above Q3 are the most representative; works below Q1 contribute the least.",
+    contributionAxisY: "Profile contribution score",
+    contributionAxisX: "Artworks (low → high)",
+    contributionChartLegend: "Sorted lollipop chart (low to high): each dot = one artwork. Q1, median and Q3 show the boxplot thresholds.",
+    representativeMost: "Most representative",
+    representativeLeast: "Least representative",
+    representativeNoData: "No contribution data available.",
+    contributionInBox: "Inside IQR",
+    contributionBelowBox: "Below Q1",
+    contributionAboveBox: "Above Q3",
+    contributionOutlier: "Outlier",
+    contributionRank: "Rank",
+    contributionImpactShare: "Impact share",
+    contributionDistance: "Distance",
+    contributionTopAxes: "Strongest axes",
   },
   fr: {
     languageLabel: "Langue",
@@ -324,5 +375,22 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     artworkCountFiltered: "{shown} sur {total} oeuvres dans la bibliothèque",
     entryHint: "Chambre {n} de 3 · Les doublons sont autorisés si cela fait sens.",
     assignForSlot: "Sélectionner pour {chamber} · {slot}",
+    representativeCardTitle: "Représentativité des oeuvres",
+    contributionChartTitle: "Contribution par oeuvre (lollipop)",
+    contributionChartIntro: "Plus une oeuvre obtient un score élevé, plus elle détermine votre profil. Les oeuvres au-dessus de Q3 sont les plus représentatives ; celles en dessous de Q1 contribuent le moins.",
+    contributionAxisY: "Score de contribution au profil",
+    contributionAxisX: "Oeuvres (faible → élevé)",
+    contributionChartLegend: "Graphique lollipop trié (faible vers élevé) : chaque point = une oeuvre. Q1, médiane et Q3 montrent les seuils du boxplot.",
+    representativeMost: "La plus représentative",
+    representativeLeast: "La moins représentative",
+    representativeNoData: "Aucune donnée de contribution disponible.",
+    contributionInBox: "Dans l'IQR",
+    contributionBelowBox: "Sous Q1",
+    contributionAboveBox: "Au-dessus de Q3",
+    contributionOutlier: "Valeur aberrante",
+    contributionRank: "Rang",
+    contributionImpactShare: "Part d'impact",
+    contributionDistance: "Distance",
+    contributionTopAxes: "Axes les plus forts",
   },
 };

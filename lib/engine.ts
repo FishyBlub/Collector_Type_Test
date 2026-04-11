@@ -1,11 +1,14 @@
 import type {
+  ArtworkContribution,
   AxisKey,
   AxisScores,
   ArchetypeMatch,
+  BoxplotStats,
   Entry,
   MixItem,
   ProfileDistributionItem,
   RankedArchetype,
+  RepresentativeArtworks,
   Report,
   ShadowHit,
   StatusLabel,
@@ -249,6 +252,197 @@ export function buildJsonPayload(
   });
 }
 
+function clampScore(value: number): number {
+  if (!Number.isFinite(value)) return 3;
+  return Math.max(1, Math.min(5, Math.round(value)));
+}
+
+function normalizeScores(rawScores: AxisScores): AxisScores {
+  return AXES.reduce((acc, axis) => {
+    acc[axis.key] = clampScore(Number(rawScores?.[axis.key]));
+    return acc;
+  }, {} as AxisScores);
+}
+
+function averageEntriesScores(entries: Entry[]): AxisScores {
+  if (entries.length === 0) {
+    return AXES.reduce((acc, axis) => {
+      acc[axis.key] = 0;
+      return acc;
+    }, {} as AxisScores);
+  }
+  return AXES.reduce((acc, axis) => {
+    const total = entries.reduce((sum, e) => sum + (Number(e?.scores?.[axis.key]) || 0), 0);
+    acc[axis.key] = total / entries.length;
+    return acc;
+  }, {} as AxisScores);
+}
+
+function calculateEuclideanDistance(a: AxisScores, b: AxisScores): number {
+  return Math.sqrt(
+    AXES.reduce((sum, axis) => {
+      const delta = (a[axis.key] ?? 0) - (b[axis.key] ?? 0);
+      return sum + delta * delta;
+    }, 0)
+  );
+}
+
+export function quantile(numbers: number[], q: number): number {
+  const values = numbers
+    .map((v) => Number(v))
+    .filter((v) => Number.isFinite(v))
+    .sort((a, b) => a - b);
+  if (values.length === 0) return 0;
+  if (values.length === 1) return values[0];
+  const clampedQ = Math.max(0, Math.min(1, q));
+  const position = (values.length - 1) * clampedQ;
+  const lower = Math.floor(position);
+  const upper = Math.ceil(position);
+  if (lower === upper) return values[lower];
+  const fraction = position - lower;
+  return values[lower] * (1 - fraction) + values[upper] * fraction;
+}
+
+export function computeBoxplotStats(values: number[]): BoxplotStats {
+  const list = values
+    .map((v) => Number(v))
+    .filter((v) => Number.isFinite(v))
+    .sort((a, b) => a - b);
+
+  if (list.length === 0) {
+    return { min: 0, q1: 0, median: 0, q3: 0, max: 0, iqr: 0, lowerFence: 0, upperFence: 0 };
+  }
+
+  const min = list[0];
+  const max = list[list.length - 1];
+  const q1 = quantile(list, 0.25);
+  const median = quantile(list, 0.5);
+  const q3 = quantile(list, 0.75);
+  const iqr = q3 - q1;
+  const lowerFence = q1 - 1.5 * iqr;
+  const upperFence = q3 + 1.5 * iqr;
+
+  return { min, q1, median, q3, max, iqr, lowerFence, upperFence };
+}
+
+export function calculateArtworkContributions(
+  entries: Entry[],
+  averages: AxisScores,
+  getArtwork: (id: string | null) => Artwork | null
+): ArtworkContribution[] {
+  if (entries.length === 0) return [];
+
+  const totalVolume = entries.reduce(
+    (sum, entry) =>
+      sum + AXES.reduce((axisSum, axis) => axisSum + (Number(entry?.scores?.[axis.key]) || 0), 0),
+    0
+  );
+
+  const raw = entries.map((entry, index) => {
+    const entryScores = normalizeScores(entry.scores);
+    const artwork = getArtwork(entry.selectedArtworkId);
+    const artworkTitle = artwork ? artwork.artworkTitle : entry.objectName || "";
+    const artistName = artwork ? artwork.artistName : "";
+    const imageUrl = artwork ? artwork.imageUrl : "";
+    const source = artwork ? artwork.source : "";
+
+    const volume = AXES.reduce((sum, axis) => sum + entryScores[axis.key], 0);
+    const otherEntries = entries.filter((_, otherIndex) => otherIndex !== index);
+    const withoutAverage = averageEntriesScores(otherEntries);
+    const impactDistance =
+      otherEntries.length > 0
+        ? calculateEuclideanDistance(averages, withoutAverage)
+        : calculateEuclideanDistance(averages, entryScores);
+    const distanceToProfile = calculateEuclideanDistance(entryScores, averages);
+    const axisContribution = AXES.reduce((acc, axis) => {
+      acc[axis.key] = round3(entryScores[axis.key] / entries.length);
+      return acc;
+    }, {} as AxisScores);
+
+    return {
+      entryId: entry.id,
+      chamber: entry.chamber,
+      slot: entry.slot,
+      artworkTitle,
+      artistName,
+      imageUrl,
+      source,
+      scores: { ...entryScores },
+      volume,
+      distanceToProfile,
+      impactDistance,
+      axisContribution,
+      volumeShare: 0,
+      impactShare: 0,
+      profileContributionScore: 0,
+    };
+  });
+
+  const totalImpactDistance = raw.reduce((sum, item) => sum + item.impactDistance, 0);
+  const fallbackShare = round1(100 / raw.length);
+
+  const enriched: ArtworkContribution[] = raw.map((item) => ({
+    ...item,
+    volumeShare: totalVolume > 0 ? round1((item.volume / totalVolume) * 100) : fallbackShare,
+    impactShare:
+      totalImpactDistance > 0
+        ? round1((item.impactDistance / totalImpactDistance) * 100)
+        : fallbackShare,
+    distanceToProfile: round3(item.distanceToProfile),
+    impactDistance: round3(item.impactDistance),
+  }));
+
+  const summedImpact = enriched.reduce((sum, item) => sum + item.impactShare, 0);
+  const impactCorrection = round1(100 - summedImpact);
+  if (Math.abs(impactCorrection) >= 0.1 && enriched.length > 0) {
+    enriched[0].impactShare = round1(enriched[0].impactShare + impactCorrection);
+  }
+
+  const summedVolume = enriched.reduce((sum, item) => sum + item.volumeShare, 0);
+  const volumeCorrection = round1(100 - summedVolume);
+  if (Math.abs(volumeCorrection) >= 0.1 && enriched.length > 0) {
+    enriched[0].volumeShare = round1(enriched[0].volumeShare + volumeCorrection);
+  }
+
+  const maxDistance = enriched.reduce(
+    (maxVal, item) => Math.max(maxVal, Number(item.distanceToProfile) || 0),
+    0
+  );
+  enriched.forEach((item) => {
+    const normalizedDistance = maxDistance > 0 ? (Number(item.distanceToProfile) || 0) / maxDistance : 0;
+    const coherenceFactor = Math.max(0, 1 - normalizedDistance);
+    item.profileContributionScore = round2((Number(item.impactShare) || 0) * coherenceFactor);
+  });
+
+  return enriched.sort(
+    (a, b) =>
+      b.volumeShare - a.volumeShare ||
+      b.impactShare - a.impactShare ||
+      a.distanceToProfile - b.distanceToProfile
+  );
+}
+
+export function deriveRepresentativeArtworks(
+  contributions: ArtworkContribution[]
+): RepresentativeArtworks {
+  if (contributions.length === 0) return { most: null, least: null };
+
+  const rankedMost = [...contributions].sort(
+    (a, b) =>
+      (Number(b.profileContributionScore) || 0) - (Number(a.profileContributionScore) || 0) ||
+      (Number(b.impactShare) || 0) - (Number(a.impactShare) || 0) ||
+      (Number(a.distanceToProfile) || 0) - (Number(b.distanceToProfile) || 0)
+  );
+  const rankedLeast = [...contributions].sort(
+    (a, b) =>
+      (Number(a.profileContributionScore) || 0) - (Number(b.profileContributionScore) || 0) ||
+      (Number(a.impactShare) || 0) - (Number(b.impactShare) || 0) ||
+      (Number(b.distanceToProfile) || 0) - (Number(a.distanceToProfile) || 0)
+  );
+
+  return { most: rankedMost[0] ?? null, least: rankedLeast[0] ?? null };
+}
+
 export function buildReport(
   entries: Entry[],
   getAxisLabel: (key: AxisKey) => string,
@@ -261,6 +455,8 @@ export function buildReport(
   const mix = calculateMix(averages, getAxisLabel);
   const shadow = computeShadow(averages, getShadowI18n);
   const status = deriveStatus(averages);
+  const artworkContributions = calculateArtworkContributions(entries, averages, getArtwork);
+  const representative = deriveRepresentativeArtworks(artworkContributions);
 
   return {
     averages,
@@ -272,5 +468,7 @@ export function buildReport(
     topDrivers: mix.slice(0, 3),
     keyRejection: mix[mix.length - 1],
     jsonPayload: buildJsonPayload(entries, getArtwork),
+    artworkContributions,
+    representative,
   };
 }
