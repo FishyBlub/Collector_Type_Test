@@ -303,21 +303,21 @@ export function DNAProvider({ children }: { children: ReactNode }) {
 
   const loadDemo = useCallback(() => {
     const demoArtworks: Artwork[] = [
-      { id: "demo_1", artworkTitle: "Nell Acqua", artistName: "Lorenzo Mattotti", imageUrl: "", source: "demo" },
-      { id: "demo_2", artworkTitle: "Blacksad", artistName: "Juanjo Guarnido", imageUrl: "", source: "demo" },
-      { id: "demo_3", artworkTitle: "Corto Maltese", artistName: "Hugo Pratt", imageUrl: "", source: "demo" },
-      { id: "demo_4", artworkTitle: "Blueberry", artistName: "Jean Giraud", imageUrl: "", source: "demo" },
-      { id: "demo_5", artworkTitle: "Akira", artistName: "Katsuhiro Otomo", imageUrl: "", source: "demo" },
-      { id: "demo_6", artworkTitle: "Tintin", artistName: "Hergé", imageUrl: "", source: "demo" },
-      { id: "demo_7", artworkTitle: "Le Chat", artistName: "Philippe Geluck", imageUrl: "", source: "demo" },
-      { id: "demo_8", artworkTitle: "XIII", artistName: "William Vance", imageUrl: "", source: "demo" },
-      { id: "demo_9", artworkTitle: "Thorgal", artistName: "Grzegorz Rosiński", imageUrl: "", source: "demo" },
-      { id: "demo_10", artworkTitle: "Largo Winch", artistName: "Philippe Francq", imageUrl: "", source: "demo" },
-      { id: "demo_11", artworkTitle: "Blake & Mortimer", artistName: "Edgar P. Jacobs", imageUrl: "", source: "demo" },
-      { id: "demo_12", artworkTitle: "Lucky Luke", artistName: "Morris", imageUrl: "", source: "demo" },
-      { id: "demo_13", artworkTitle: "Gaston Lagaffe", artistName: "André Franquin", imageUrl: "", source: "demo" },
-      { id: "demo_14", artworkTitle: "Astérix", artistName: "Albert Uderzo", imageUrl: "", source: "demo" },
-      { id: "demo_15", artworkTitle: "Spirou", artistName: "André Franquin", imageUrl: "", source: "demo" },
+      { id: "demo_1", artworkTitle: "Nell Acqua", artistName: "Lorenzo Mattotti", imageUrl: "https://www.2dgalleries.com/planches/200H/2024/327/mattotti-nell-acqua-3iq3.jpg", source: "2DGalleries" },
+      { id: "demo_2", artworkTitle: "On the road XIX", artistName: "Lorenzo Mattotti", imageUrl: "https://www.2dgalleries.com/planches/200H/2026/18/mattotti-on-the-road-xix-2rvo.jpg", source: "2DGalleries" },
+      { id: "demo_3", artworkTitle: "Van Gogh sous la pluie", artistName: "Lorenzo Mattotti", imageUrl: "https://www.2dgalleries.com/planches/200H/2025/157/mattotti-van-gogh-sous-la-pluie-31hq.jpg", source: "2DGalleries" },
+      { id: "demo_4", artworkTitle: "La fameuse invasion des ours en Italie", artistName: "Lorenzo Mattotti", imageUrl: "https://www.2dgalleries.com/planches/200H/2020/69/mattotti-la-fameuse-invasion-des-ours-en-italie-2vmi.jpg", source: "2DGalleries" },
+      { id: "demo_5", artworkTitle: "Blake et Mortimer", artistName: "Floc'h", imageUrl: "https://www.2dgalleries.com/planches/200H/2024/115/floc-h-blake-et-mortimer-343u.jpg", source: "2DGalleries" },
+      { id: "demo_6", artworkTitle: "Monsieur Hulot", artistName: "Floc'h", imageUrl: "https://www.2dgalleries.com/planches/200H/2019/348/floch-monsieur-hulot-3h01.jpg", source: "2DGalleries" },
+      { id: "demo_7", artworkTitle: "Couma Aco", artistName: "Edmond Baudoin", imageUrl: "https://www.2dgalleries.com/planches/200H/2019/348/baudoin-couma-aco-2juz.jpg", source: "2DGalleries" },
+      { id: "demo_8", artworkTitle: "Pour Elles I", artistName: "Edmond Baudoin", imageUrl: "https://www.2dgalleries.com/planches/200H/2019/347/baudoin-pour-elles-i-37w6.jpg", source: "2DGalleries" },
+      { id: "demo_9", artworkTitle: "Mars", artistName: "François Schuiten", imageUrl: "https://www.2dgalleries.com/planches/200H/2022/339/schuiten-mars-3kt3.jpg", source: "2DGalleries" },
+      { id: "demo_10", artworkTitle: "De Bruxelles à Brüsel", artistName: "François Schuiten", imageUrl: "https://www.2dgalleries.com/planches/200H/2019/348/schuiten-de-bruxelles-a-brusel-2oaa.jpg", source: "2DGalleries" },
+      { id: "demo_11", artworkTitle: "Gauloises", artistName: "Andrea Serio", imageUrl: "https://www.2dgalleries.com/planches/200H/2024/285/serio-gauloises-39wk.jpg", source: "2DGalleries" },
+      { id: "demo_12", artworkTitle: "Lysistrata", artistName: "Ralf König", imageUrl: "https://www.2dgalleries.com/planches/200H/2019/347/konig-lysistrata-3g03.jpg", source: "2DGalleries" },
+      { id: "demo_13", artworkTitle: "Saveur Coco", artistName: "Renaud Dillies", imageUrl: "https://www.2dgalleries.com/planches/200H/2020/273/dillies-saveur-coco-3er5.jpg", source: "2DGalleries" },
+      { id: "demo_14", artworkTitle: "Foules et Files", artistName: "Yves Chaland", imageUrl: "https://www.2dgalleries.com/planches/200H/2019/347/chaland-foules-et-files-33es.jpg", source: "2DGalleries" },
+      { id: "demo_15", artworkTitle: "La Vache", artistName: "Johan De Moor", imageUrl: "https://www.2dgalleries.com/planches/200H/2020/335/de-moor-la-vache-2s35.jpg", source: "2DGalleries" },
     ];
 
     const demoScores: AxisScores[] = [
