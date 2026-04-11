@@ -7,6 +7,7 @@ import {
   getArchetypeDescription,
   getStatusLabel,
 } from "@/lib/i18n";
+import { PANEL_CLASS, CARD_CLASS } from "@/lib/utils";
 import DNARadarChart from "./RadarChart";
 import MixBars from "./MixBars";
 import ProfileCatalog from "./ProfileCatalog";
@@ -52,7 +53,7 @@ export default function ResultsPanel() {
   }
 
   return (
-    <section className="reveal rounded-[var(--radius-panel)] border border-[#e8d8bf] bg-[var(--color-panel)]/80 p-5 shadow-[0_12px_30px_rgba(46,34,20,0.12)] backdrop-blur-[6px]">
+    <section className={PANEL_CLASS} data-testid="results-panel">
       <div className="mb-4">
         <h2 className="m-0 text-2xl">{t.resultsTitle}</h2>
         <p className="mt-1 mb-4 text-ink-soft">{t.resultsIntro}</p>
@@ -60,13 +61,13 @@ export default function ResultsPanel() {
 
       <div className="grid gap-3 grid-cols-1 md:grid-cols-2">
         {/* Radar chart */}
-        <article className="rounded-[var(--radius-card)] border border-[#dfcfb8] bg-[#fffdf8] p-4">
+        <article className={CARD_CLASS} data-testid="radar-card">
           <h3 className="m-0 mb-2 text-lg">{t.radarCardTitle}</h3>
           <DNARadarChart averages={averages} locale={locale} />
         </article>
 
         {/* Primary archetype */}
-        <article className="rounded-[var(--radius-card)] border border-[#dfcfb8] bg-[#fffdf8] p-4">
+        <article className={CARD_CLASS} data-testid="archetype-card">
           <h3 className="m-0 mb-2 text-lg">{t.archetypeCardTitle}</h3>
           <p className="m-0 text-[0.74rem] font-bold uppercase tracking-[0.06em] text-accent-2">
             {t.archetypeMatchLabel}
@@ -82,7 +83,7 @@ export default function ResultsPanel() {
           <p className="mt-3 mb-1 text-[0.74rem] font-bold uppercase tracking-[0.06em] text-accent-2">
             {t.profileDistributionLabel}
           </p>
-          <ul className="mt-2 pl-4 text-[0.82rem] text-[#4d4140]">
+          <ul className="mt-2 pl-4 text-[0.82rem] text-ink-muted">
             {profileDistribution.map((item) => (
               <li key={item.name} className="mt-0.5">
                 <strong>{getArchetypeName(locale, item.name)}:</strong> {item.percentage}%
@@ -92,12 +93,12 @@ export default function ResultsPanel() {
         </article>
 
         {/* Shadow analysis */}
-        <article className="rounded-[var(--radius-card)] border border-[#dfcfb8] bg-[#fffdf8] p-4">
+        <article className={CARD_CLASS} data-testid="shadow-card">
           <h3 className="m-0 mb-2 text-lg">{t.shadowCardTitle}</h3>
           <p className="m-0 text-[0.74rem] font-bold uppercase tracking-[0.06em] text-accent-2">
             {t.shadowCardLabel}
           </p>
-          <ul className="mt-2 pl-4 text-[#4d4140]">
+          <ul className="mt-2 pl-4 text-ink-muted">
             {shadow.map((s, i) => (
               <li key={i} className="mt-1.5">
                 <strong>{s.title}:</strong> {s.text}
@@ -107,7 +108,7 @@ export default function ResultsPanel() {
         </article>
 
         {/* DNA Mix */}
-        <article className="rounded-[var(--radius-card)] border border-[#dfcfb8] bg-[#fffdf8] p-4">
+        <article className={CARD_CLASS} data-testid="mix-card">
           <h3 className="m-0 mb-2 text-lg">{t.mixCardTitle}</h3>
           <p className="mt-1 text-ink-soft">
             {t.topDrivers}: {topDrivers.map((d) => `${d.label} (${d.share}%)`).join(", ")}
@@ -122,13 +123,13 @@ export default function ResultsPanel() {
         </article>
 
         {/* Profile catalog */}
-        <article className="col-span-full rounded-[var(--radius-card)] border border-[#dfcfb8] bg-[#fffdf8] p-4">
+        <article className={`col-span-full ${CARD_CLASS}`}>
           <h3 className="m-0 mb-2 text-lg">{t.profileCatalogTitle}</h3>
           <ProfileCatalog distribution={profileDistribution} locale={locale} />
         </article>
 
         {/* Artwork contribution chart */}
-        <article className="col-span-full rounded-[var(--radius-card)] border border-[#dfcfb8] bg-[#fffdf8] p-4">
+        <article className={`col-span-full ${CARD_CLASS}`}>
           <h3 className="m-0 mb-2 text-lg">{t.representativeCardTitle}</h3>
           <h4 className="m-0 mb-1 text-base">{t.contributionChartTitle}</h4>
           <p className="mb-3 text-[0.82rem] text-ink-soft">{t.contributionChartIntro}</p>
@@ -136,7 +137,7 @@ export default function ResultsPanel() {
         </article>
 
         {/* JSON output */}
-        <article className="col-span-full rounded-[var(--radius-card)] border border-[#dfcfb8] bg-[#fffdf8] p-4">
+        <article className={`col-span-full ${CARD_CLASS}`} data-testid="json-card">
           <h3 className="m-0 mb-2 text-lg">{t.jsonCardTitle}</h3>
           <pre className="m-0 max-h-[280px] overflow-auto rounded-[10px] bg-[#121415] p-3 text-[0.78rem] text-[#d8e2dd]">
             {JSON.stringify(jsonPayload, null, 2)}

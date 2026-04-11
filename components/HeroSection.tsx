@@ -1,6 +1,7 @@
 "use client";
 
 import { useDNA } from "@/lib/DNAContext";
+import { PANEL_CLASS } from "@/lib/utils";
 import type { Locale } from "@/types";
 
 export default function HeroSection() {
@@ -15,9 +16,9 @@ export default function HeroSection() {
     .replace("{total}", String(total));
 
   return (
-    <header className="reveal rounded-[var(--radius-panel)] border border-[#e8d8bf] bg-[var(--color-panel)]/80 p-7 shadow-[0_12px_30px_rgba(46,34,20,0.12)] backdrop-blur-[6px]">
+    <header className={`${PANEL_CLASS} p-7`} data-testid="hero-section">
       <p className="m-0 text-[0.85rem] font-bold uppercase tracking-[0.08em] text-accent-2">
-        Collector DNA · The Narrative Engine
+        {t.heroSubtitle}
       </p>
 
       <div className="mt-2.5 inline-flex items-center gap-2">
@@ -27,8 +28,12 @@ export default function HeroSection() {
         <select
           id="lang-select"
           value={locale}
-          onChange={(e) => setLocale(e.target.value as Locale)}
+          onChange={(e) => {
+            // Value is constrained by the <option> elements below
+            setLocale(e.target.value as Locale);
+          }}
           className="rounded-full border border-warm-500 bg-bg px-2.5 py-1 text-[0.8rem] text-warm-800"
+          data-testid="language-select"
         >
           <option value="nl">Nederlands</option>
           <option value="en">English</option>
@@ -43,7 +48,7 @@ export default function HeroSection() {
       <p className="m-0 max-w-[76ch]">{t.heroIntro}</p>
 
       <div className="mt-4 flex flex-wrap gap-2.5">
-        <span className="rounded-full border border-warm-300 bg-warm-200 px-3 py-1.5 text-[0.88rem] text-warm-900">
+        <span className="rounded-full border border-warm-300 bg-warm-200 px-3 py-1.5 text-[0.88rem] text-warm-900" data-testid="completion-badge">
           {badge}
         </span>
         <span className="rounded-full border border-warm-300 bg-warm-200 px-3 py-1.5 text-[0.88rem] text-warm-900">

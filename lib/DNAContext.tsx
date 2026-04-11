@@ -22,7 +22,9 @@ import type {
 } from "@/types";
 import { AXES } from "@/constants/axes";
 import { CHAMBERS, DEFAULT_SLOTS_PER_CHAMBER } from "@/constants/chambers";
+import { DEMO_ARTWORKS, DEMO_SCORES } from "@/constants/demo";
 import { buildReport } from "@/lib/engine";
+import { SHADOW_TRIGGER_THRESHOLD } from "@/constants/shadows";
 import {
   getAxisLabel,
   getShadowTitle,
@@ -35,6 +37,7 @@ const LOCALE_KEY = "collector_dna_locale_v1";
 const AUTOSAVE_DELAY = 300;
 
 function defaultScores(): AxisScores {
+  // Seed as empty object, progressively filled by the AXES loop to form a complete AxisScores
   return AXES.reduce((acc, a) => {
     acc[a.key] = 3;
     return acc;
@@ -44,7 +47,7 @@ function defaultScores(): AxisScores {
 function createInitialEntries(): Entry[] {
   const entries: Entry[] = [];
   for (const chamber of CHAMBERS) {
-    for (let slot = 1; slot <= 5; slot++) {
+    for (let slot = 1; slot <= DEFAULT_SLOTS_PER_CHAMBER; slot++) {
       entries.push({
         id: `${chamber.key.toLowerCase()}_${slot}`,
         chamber: chamber.key,
@@ -63,6 +66,18 @@ interface SavedState {
   artworks: Artwork[];
   slotsPerChamber: number;
   activeChamber: ChamberKey;
+}
+
+function isValidSavedState(data: unknown): data is SavedState {
+  if (typeof data !== "object" || data === null) return false;
+  // Narrowed to non-null object above; cast to index into properties
+  const obj = data as Record<string, unknown>;
+  return (
+    Array.isArray(obj.entries) &&
+    Array.isArray(obj.artworks) &&
+    typeof obj.slotsPerChamber === "number" &&
+    typeof obj.activeChamber === "string"
+  );
 }
 
 interface DNAContextValue {
@@ -118,33 +133,36 @@ export function DNAProvider({ children }: { children: ReactNode }) {
   const [report, setReport] = useState<Report | null>(null);
   const [saveStatus, setSaveStatus] = useState("");
   const [axisVariants, setAxisVariants] = useState<Record<AxisKey, QuestionVariant>>(
+    // Seed as empty object, progressively filled by the AXES loop
     () => AXES.reduce((acc, a) => { acc[a.key] = "primary"; return acc; }, {} as Record<AxisKey, QuestionVariant>)
   );
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hydrated = useRef(false);
+  const [hydrated, setHydrated] = useState(false);
 
   const t = useMemo(() => getUiStrings(locale), [locale]);
 
-  // Hydrate from localStorage
   useEffect(() => {
     try {
       const savedLocale = localStorage.getItem(LOCALE_KEY);
       if (savedLocale && ["nl", "en", "fr"].includes(savedLocale)) {
+        // Validated by the includes check above
         setLocaleState(savedLocale as Locale);
       }
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const saved: SavedState = JSON.parse(raw);
-        if (saved.entries?.length) setEntries(saved.entries);
-        if (saved.artworks?.length) setArtworks(saved.artworks);
-        if (saved.slotsPerChamber) setSlotsPerChamber(saved.slotsPerChamber);
-        if (saved.activeChamber) setActiveChamber(saved.activeChamber);
+        const parsed: unknown = JSON.parse(raw);
+        if (isValidSavedState(parsed)) {
+          if (parsed.entries.length) setEntries(parsed.entries);
+          if (parsed.artworks.length) setArtworks(parsed.artworks);
+          if (parsed.slotsPerChamber) setSlotsPerChamber(parsed.slotsPerChamber);
+          if (parsed.activeChamber) setActiveChamber(parsed.activeChamber);
+        }
       }
     } catch {
-      // ignore
+      // ignore corrupt localStorage
     }
-    hydrated.current = true;
+    setHydrated(true);
   }, []);
 
   const scheduleSave = useCallback(
@@ -161,16 +179,18 @@ export function DNAProvider({ children }: { children: ReactNode }) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
           setSaveStatus(msg ?? t.autosaveActive);
         } catch {
-          // ignore
+          // ignore quota errors
         }
       }, AUTOSAVE_DELAY);
     },
     [entries, artworks, slotsPerChamber, activeChamber, t.autosaveActive]
   );
 
+  // Only autosave after hydration is committed to state, preventing
+  // overwrite of localStorage with default values on first render.
   useEffect(() => {
-    if (hydrated.current) scheduleSave();
-  }, [entries, artworks, slotsPerChamber, activeChamber, scheduleSave]);
+    if (hydrated) scheduleSave();
+  }, [hydrated, entries, artworks, slotsPerChamber, activeChamber, scheduleSave]);
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l);
@@ -286,7 +306,18 @@ export function DNAProvider({ children }: { children: ReactNode }) {
         title: getShadowTitle(locale, rule.id, rule.title),
         text: getShadowText(locale, rule.id, rule.text),
       }),
-      (id) => getArtworkById(id)
+      (id) => getArtworkById(id),
+      {
+        unknownProfile: t.unknownProfile,
+        unknownProfileMotto: t.unknownProfileMotto,
+        unknownProfileDescription: t.unknownProfileDescription,
+        hybridProfileMotto: t.hybridProfileMotto,
+        hybridProfileDescription: t.hybridProfileDescription,
+      },
+      {
+        title: t.noShadowTitle,
+        text: t.noShadowText.replace("{threshold}", String(SHADOW_TRIGGER_THRESHOLD)),
+      }
     );
     setReport(r);
     return r;
@@ -302,43 +333,7 @@ export function DNAProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const loadDemo = useCallback(() => {
-    const demoArtworks: Artwork[] = [
-      { id: "demo_1", artworkTitle: "Nell Acqua", artistName: "Lorenzo Mattotti", imageUrl: "https://www.2dgalleries.com/planches/200H/2024/327/mattotti-nell-acqua-3iq3.jpg", source: "2DGalleries" },
-      { id: "demo_2", artworkTitle: "On the road XIX", artistName: "Lorenzo Mattotti", imageUrl: "https://www.2dgalleries.com/planches/200H/2026/18/mattotti-on-the-road-xix-2rvo.jpg", source: "2DGalleries" },
-      { id: "demo_3", artworkTitle: "Van Gogh sous la pluie", artistName: "Lorenzo Mattotti", imageUrl: "https://www.2dgalleries.com/planches/200H/2025/157/mattotti-van-gogh-sous-la-pluie-31hq.jpg", source: "2DGalleries" },
-      { id: "demo_4", artworkTitle: "La fameuse invasion des ours en Italie", artistName: "Lorenzo Mattotti", imageUrl: "https://www.2dgalleries.com/planches/200H/2020/69/mattotti-la-fameuse-invasion-des-ours-en-italie-2vmi.jpg", source: "2DGalleries" },
-      { id: "demo_5", artworkTitle: "Blake et Mortimer", artistName: "Floc'h", imageUrl: "https://www.2dgalleries.com/planches/200H/2024/115/floc-h-blake-et-mortimer-343u.jpg", source: "2DGalleries" },
-      { id: "demo_6", artworkTitle: "Monsieur Hulot", artistName: "Floc'h", imageUrl: "https://www.2dgalleries.com/planches/200H/2019/348/floch-monsieur-hulot-3h01.jpg", source: "2DGalleries" },
-      { id: "demo_7", artworkTitle: "Couma Aco", artistName: "Edmond Baudoin", imageUrl: "https://www.2dgalleries.com/planches/200H/2019/348/baudoin-couma-aco-2juz.jpg", source: "2DGalleries" },
-      { id: "demo_8", artworkTitle: "Pour Elles I", artistName: "Edmond Baudoin", imageUrl: "https://www.2dgalleries.com/planches/200H/2019/347/baudoin-pour-elles-i-37w6.jpg", source: "2DGalleries" },
-      { id: "demo_9", artworkTitle: "Mars", artistName: "François Schuiten", imageUrl: "https://www.2dgalleries.com/planches/200H/2022/339/schuiten-mars-3kt3.jpg", source: "2DGalleries" },
-      { id: "demo_10", artworkTitle: "De Bruxelles à Brüsel", artistName: "François Schuiten", imageUrl: "https://www.2dgalleries.com/planches/200H/2019/348/schuiten-de-bruxelles-a-brusel-2oaa.jpg", source: "2DGalleries" },
-      { id: "demo_11", artworkTitle: "Gauloises", artistName: "Andrea Serio", imageUrl: "https://www.2dgalleries.com/planches/200H/2024/285/serio-gauloises-39wk.jpg", source: "2DGalleries" },
-      { id: "demo_12", artworkTitle: "Lysistrata", artistName: "Ralf König", imageUrl: "https://www.2dgalleries.com/planches/200H/2019/347/konig-lysistrata-3g03.jpg", source: "2DGalleries" },
-      { id: "demo_13", artworkTitle: "Saveur Coco", artistName: "Renaud Dillies", imageUrl: "https://www.2dgalleries.com/planches/200H/2020/273/dillies-saveur-coco-3er5.jpg", source: "2DGalleries" },
-      { id: "demo_14", artworkTitle: "Foules et Files", artistName: "Yves Chaland", imageUrl: "https://www.2dgalleries.com/planches/200H/2019/347/chaland-foules-et-files-33es.jpg", source: "2DGalleries" },
-      { id: "demo_15", artworkTitle: "La Vache", artistName: "Johan De Moor", imageUrl: "https://www.2dgalleries.com/planches/200H/2020/335/de-moor-la-vache-2s35.jpg", source: "2DGalleries" },
-    ];
-
-    const demoScores: AxisScores[] = [
-      { jager: 5, estheet: 5, verwant: 4, bewaker: 2, avonturier: 5, speculant: 2, architect: 1 },
-      { jager: 4, estheet: 5, verwant: 3, bewaker: 3, avonturier: 4, speculant: 2, architect: 2 },
-      { jager: 3, estheet: 4, verwant: 5, bewaker: 4, avonturier: 3, speculant: 1, architect: 2 },
-      { jager: 4, estheet: 3, verwant: 2, bewaker: 3, avonturier: 4, speculant: 3, architect: 3 },
-      { jager: 3, estheet: 5, verwant: 3, bewaker: 2, avonturier: 5, speculant: 1, architect: 1 },
-      { jager: 2, estheet: 3, verwant: 4, bewaker: 5, avonturier: 2, speculant: 3, architect: 4 },
-      { jager: 2, estheet: 4, verwant: 3, bewaker: 1, avonturier: 3, speculant: 1, architect: 2 },
-      { jager: 4, estheet: 3, verwant: 2, bewaker: 3, avonturier: 3, speculant: 4, architect: 3 },
-      { jager: 3, estheet: 4, verwant: 4, bewaker: 3, avonturier: 4, speculant: 1, architect: 2 },
-      { jager: 5, estheet: 3, verwant: 1, bewaker: 4, avonturier: 2, speculant: 5, architect: 3 },
-      { jager: 2, estheet: 2, verwant: 2, bewaker: 5, avonturier: 4, speculant: 2, architect: 4 },
-      { jager: 3, estheet: 3, verwant: 3, bewaker: 2, avonturier: 3, speculant: 2, architect: 2 },
-      { jager: 2, estheet: 4, verwant: 4, bewaker: 2, avonturier: 4, speculant: 1, architect: 1 },
-      { jager: 3, estheet: 4, verwant: 3, bewaker: 3, avonturier: 3, speculant: 2, architect: 2 },
-      { jager: 3, estheet: 4, verwant: 3, bewaker: 2, avonturier: 4, speculant: 1, architect: 2 },
-    ];
-
-    setArtworks(demoArtworks);
+    setArtworks(DEMO_ARTWORKS);
     setSlotsPerChamber(5);
     setActiveChamber("Hart");
 
@@ -348,10 +343,10 @@ export function DNAProvider({ children }: { children: ReactNode }) {
     for (const ck of chamberKeys) {
       for (let slot = 1; slot <= 5; slot++) {
         const entry = newEntries.find((e) => e.chamber === ck && e.slot === slot);
-        if (entry && artIdx < demoArtworks.length) {
-          entry.selectedArtworkId = demoArtworks[artIdx].id;
-          entry.objectName = demoArtworks[artIdx].artworkTitle;
-          entry.scores = demoScores[artIdx];
+        if (entry && artIdx < DEMO_ARTWORKS.length) {
+          entry.selectedArtworkId = DEMO_ARTWORKS[artIdx].id;
+          entry.objectName = DEMO_ARTWORKS[artIdx].artworkTitle;
+          entry.scores = DEMO_SCORES[artIdx];
           artIdx++;
         }
       }

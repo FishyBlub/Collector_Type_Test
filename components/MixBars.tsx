@@ -8,7 +8,7 @@ interface Props {
 
 export default function MixBars({ items }: Props) {
   return (
-    <div className="mt-3 grid gap-1.5">
+    <div className="mt-3 grid gap-1.5" data-testid="mix-bars">
       {items.map((item) => (
         <div
           key={item.key}

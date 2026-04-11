@@ -1,16 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { useDNA } from "@/lib/DNAContext";
 import { getAxisLabel, getAxisQuestion } from "@/lib/i18n";
 import { AXES } from "@/constants/axes";
+import { BUTTON_SMALL_CLASS, BUTTON_DANGER_CLASS, INPUT_CLASS } from "@/lib/utils";
+import { PLACEHOLDER_SMALL as PLACEHOLDER } from "@/lib/placeholders";
 import type { Entry } from "@/types";
-
-const PLACEHOLDER =
-  "data:image/svg+xml;charset=UTF-8," +
-  encodeURIComponent(
-    "<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'><rect width='56' height='56' rx='8' fill='%23f7eddc'/><text x='28' y='32' text-anchor='middle' font-size='9' fill='%23725538' font-family='sans-serif'>—</text></svg>"
-  );
 
 interface Props {
   entry: Entry;
@@ -40,6 +37,7 @@ export default function ObjectCard({ entry, linkedCount }: Props) {
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
+      // e.target is EventTarget; cast to Node for DOM containment check
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
         setFilterText("");
@@ -60,19 +58,21 @@ export default function ObjectCard({ entry, linkedCount }: Props) {
   );
 
   return (
-    <div className="rounded-xl border border-[#e6d6bf] bg-card p-3 transition-all duration-200">
+    <div className="rounded-xl border border-panel-border bg-card p-3 transition-all duration-200" data-testid={`object-card-${entry.id}`}>
       <h4 className="m-0 text-base">
         {entry.chamber} · {t.objectName} {entry.slot}
       </h4>
 
       {/* Artwork selection / preview */}
       {artwork ? (
-        <div className="mt-2 grid grid-cols-[56px_minmax(0,1fr)] items-center gap-2 rounded-[10px] border border-[#e2d2bb] bg-[#fffdf8] p-2">
-          <img
+        <div className="mt-2 grid grid-cols-[56px_minmax(0,1fr)] items-center gap-2 rounded-[var(--radius-input)] border border-card-border bg-card-inner p-2">
+          <Image
             src={artwork.imageUrl || PLACEHOLDER}
             alt={artwork.artworkTitle}
-            className="h-14 w-14 rounded-lg border border-[#dfccb0] bg-[#f7ecdc] object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER; }}
+            width={56}
+            height={56}
+            className="rounded-lg border border-img-border bg-img-bg object-cover"
+            unoptimized={!artwork.imageUrl}
           />
           <div className="min-w-0">
             <strong className="block truncate text-[0.78rem]">{artwork.artworkTitle}</strong>
@@ -81,13 +81,14 @@ export default function ObjectCard({ entry, linkedCount }: Props) {
         </div>
       ) : (
         <div className="mt-2">
-          <label className="block text-[0.82rem] text-[#5d5045]">{t.objectName}</label>
+          <label className="block text-[0.82rem] text-ink-muted">{t.objectName}</label>
           <input
             type="text"
             value={entry.objectName}
             onChange={(e) => setEntryObjectName(entry.id, e.target.value)}
             placeholder="e.g. mattotti_nell_acqua"
-            className="mt-0.5 w-full rounded-[10px] border border-warm-500 bg-[#fffbf5] px-2 py-1.5 text-ink"
+            className={`mt-0.5 ${INPUT_CLASS}`}
+            data-testid={`object-name-${entry.id}`}
           />
         </div>
       )}
@@ -99,13 +100,14 @@ export default function ObjectCard({ entry, linkedCount }: Props) {
             <button
               type="button"
               onClick={() => setDropdownOpen((prev) => !prev)}
-              className="cursor-pointer rounded-full border border-[#d9c2a0] bg-[#fef6ea] px-2.5 py-1 text-[0.75rem] font-bold text-[#4f4136] hover:brightness-[0.97]"
+              className={`${BUTTON_SMALL_CLASS} hover:brightness-[0.97]`}
+              data-testid={`select-artwork-${entry.id}`}
             >
               {t.selectFromLibrary}
             </button>
 
             {dropdownOpen && (
-              <div className="absolute left-0 z-50 mt-1 w-full rounded-xl border border-[#d9c2a0] bg-[#fef6ea] shadow-lg">
+              <div className="absolute left-0 z-50 mt-1 w-full rounded-xl border border-btn-border bg-btn-bg shadow-lg">
                 <div className="p-1.5">
                   <input
                     ref={filterInputRef}
@@ -113,27 +115,30 @@ export default function ObjectCard({ entry, linkedCount }: Props) {
                     value={filterText}
                     onChange={(e) => setFilterText(e.target.value)}
                     placeholder={t.artworkSearchPlaceholder}
-                    className="w-full rounded-lg border border-[#e2d2bb] bg-[#fffdf8] px-2 py-1 text-[0.75rem] text-ink outline-none focus:border-[#c9a96e]"
+                    className="w-full rounded-lg border border-card-border bg-card-inner px-2 py-1 text-[0.75rem] text-ink outline-none focus:border-warm-300"
                   />
                 </div>
-                <ul className="max-h-[250px] overflow-y-scroll p-1.5 pt-0">
+                <ul className="max-h-[250px] overflow-y-scroll p-1.5 pt-0" role="listbox">
                   {filteredArtworks.length === 0 ? (
-                    <li className="px-2 py-1.5 text-[0.72rem] text-[#8a7b6b]">
+                    <li className="px-2 py-1.5 text-[0.72rem] text-[#8a7b6b]" role="option" aria-selected={false}>
                       {t.emptyArtworksSearch}
                     </li>
                   ) : (
                     filteredArtworks.map((a) => (
-                      <li
-                        key={a.id}
-                        onClick={() => {
-                          assignArtwork(entry.id, a.id);
-                          setDropdownOpen(false);
-                          setFilterText("");
-                        }}
-                        className="cursor-pointer rounded-lg px-2 py-1.5 text-[0.75rem] text-[#4f4136] hover:bg-[#f7ecdc]"
-                      >
-                        <span className="font-bold">{a.artworkTitle}</span>
-                        <span className="text-[#8a7b6b]"> — {a.artistName || "?"}</span>
+                      <li key={a.id} role="option" aria-selected={false}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            assignArtwork(entry.id, a.id);
+                            setDropdownOpen(false);
+                            setFilterText("");
+                          }}
+                          className="w-full cursor-pointer rounded-lg px-2 py-1.5 text-left text-[0.75rem] text-btn-text hover:bg-img-bg"
+                          data-testid={`dropdown-option-${a.id}`}
+                        >
+                          <span className="font-bold">{a.artworkTitle}</span>
+                          <span className="text-[#8a7b6b]"> — {a.artistName || "?"}</span>
+                        </button>
                       </li>
                     ))
                   )}
@@ -146,7 +151,8 @@ export default function ObjectCard({ entry, linkedCount }: Props) {
           <button
             type="button"
             onClick={() => clearEntryArtwork(entry.id)}
-            className="cursor-pointer rounded-full border border-[#c89a97] bg-[#fff4f2] px-2.5 py-1 text-[0.75rem] font-bold text-[#7c2e2a] hover:bg-[#ffede9]"
+            className={BUTTON_DANGER_CLASS}
+            data-testid={`remove-artwork-${entry.id}`}
           >
             {t.removeSelection}
           </button>
@@ -154,8 +160,8 @@ export default function ObjectCard({ entry, linkedCount }: Props) {
       </div>
 
       {linkedCount > 1 && (
-        <p className="mt-1 mb-1 rounded-lg border border-[#bfdee2] bg-[#e8f6f8] px-2 py-1 text-[0.74rem] text-[#0c5e66]">
-          Scoring linked across {linkedCount} slots
+        <p className="mt-1 mb-1 rounded-lg border border-info-border bg-info-bg px-2 py-1 text-[0.74rem] text-info-text">
+          {t.scoringLinked.replace("{count}", String(linkedCount))}
         </p>
       )}
 
@@ -189,6 +195,8 @@ export default function ObjectCard({ entry, linkedCount }: Props) {
                 step={1}
                 value={value}
                 onChange={(e) => updateScore(entry.id, axis.key, Number(e.target.value))}
+                aria-label={label}
+                data-testid={`slider-${entry.id}-${axis.key}`}
               />
             </div>
           );

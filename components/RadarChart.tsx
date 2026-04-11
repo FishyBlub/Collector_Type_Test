@@ -26,7 +26,7 @@ export default function DNARadarChart({ averages, locale }: Props) {
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={400}>
+    <ResponsiveContainer width="100%" height={400} data-testid="radar-chart">
       <RechartsRadarChart data={data} cx="50%" cy="50%" outerRadius="78%">
         <PolarGrid stroke="#dbcab0" />
         <PolarAngleAxis

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import pdfParse from "pdf-parse";
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
 interface Suggestion {
   title: string;
   artist: string;
@@ -18,12 +20,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: "File too large. Maximum size is 10 MB." },
+        { status: 400 }
+      );
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer());
 
     let text = "";
+    let pageCount = 0;
     try {
       const data = await pdfParse(buffer);
       text = data.text || "";
+      pageCount = data.numpages ?? 0;
     } catch {
       text = buffer
         .toString("utf-8")
@@ -36,13 +47,15 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      pageCount: 0,
+      pageCount,
       textLength: text.length,
       suggestions,
     });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to process PDF upload." },
+      { status: 500 }
+    );
   }
 }
 

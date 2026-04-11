@@ -22,7 +22,7 @@ export default function ProfileCatalog({ distribution, locale }: Props) {
   })).sort((a, b) => b.percentage - a.percentage);
 
   return (
-    <div className="grid gap-1.5">
+    <div className="grid gap-1.5" data-testid="profile-catalog">
       {items.map((item) => (
         <article
           key={item.name}

@@ -5,12 +5,39 @@
   --color-bg-alt: #f4ead9;
   --color-ink: #1e2225;
   --color-ink-soft: #4f5961;
+  --color-ink-muted: #5d5045;
+  --color-ink-faint: #706157;
   --color-line: #d8c5a8;
   --color-accent: #b3392f;
   --color-accent-2: #0d6d63;
   --color-accent-3: #d9811b;
   --color-panel: #fffcf6;
+  --color-panel-border: #e8d8bf;
   --color-card: #fffef9;
+  --color-card-inner: #fffdf8;
+  --color-card-border: #dfcfb8;
+  --color-form-bg: #fffaf0;
+  --color-form-border: #dcc8ac;
+  --color-input-bg: #fffbf5;
+  --color-btn-bg: #fef6ea;
+  --color-btn-border: #d9c2a0;
+  --color-btn-text: #4f4136;
+  --color-btn-danger-bg: #fff4f2;
+  --color-btn-danger-border: #c89a97;
+  --color-btn-danger-text: #7c2e2a;
+  --color-btn-danger-hover: #ffede9;
+  --color-label: #5f4e40;
+  --color-img-bg: #f7ecdc;
+  --color-img-border: #dfccb0;
+  --color-success-bg: #e7f6f3;
+  --color-success-text: #1a5d56;
+  --color-warn-bg: #fff7dd;
+  --color-warn-text: #735315;
+  --color-error-bg: #ffe9e6;
+  --color-error-text: #7e2621;
+  --color-info-bg: #e8f6f8;
+  --color-info-border: #bfdee2;
+  --color-info-text: #0c5e66;
   --color-warm-100: #fff5e6;
   --color-warm-200: #f5e6d1;
   --color-warm-300: #e6c79a;
@@ -94,6 +121,12 @@ input[type="range"] {
 
 .reveal {
   animation: rise 560ms ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    animation: none;
+  }
 }
 
 @keyframes pdfProgressShift {

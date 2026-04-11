@@ -3,6 +3,7 @@
 import { useDNA } from "@/lib/DNAContext";
 import { getChamberTitle, getChamberPrompt } from "@/lib/i18n";
 import { CHAMBERS, SLOT_OPTIONS } from "@/constants/chambers";
+import { PANEL_CLASS, BUTTON_CLASS, BUTTON_PRIMARY_CLASS } from "@/lib/utils";
 import type { ChamberKey } from "@/types";
 import ObjectCard from "./ObjectCard";
 
@@ -19,7 +20,6 @@ export default function ChamberPanel() {
     runAnalysis,
     loadDemo,
     resetAll,
-    report,
   } = useDNA();
 
   const chamberIndex = CHAMBERS.findIndex((c) => c.key === activeChamber);
@@ -44,10 +44,9 @@ export default function ChamberPanel() {
   };
 
   const totalPieces = slotsPerChamber * 3;
-  const piecesValue = totalPieces;
 
   return (
-    <section className="reveal rounded-[var(--radius-panel)] border border-[#e8d8bf] bg-[var(--color-panel)]/80 p-5 shadow-[0_12px_30px_rgba(46,34,20,0.12)] backdrop-blur-[6px]">
+    <section className={PANEL_CLASS} data-testid="chamber-panel">
       <div className="mb-4">
         <h2 className="m-0 text-2xl">{t.inputTitle}</h2>
         <p className="mt-1 mb-4 text-ink-soft">{t.inputIntro}</p>
@@ -57,9 +56,10 @@ export default function ChamberPanel() {
       <div className="mb-3 flex items-center gap-3 rounded-xl border border-warm-400 bg-warm-100 px-3 py-2">
         <label className="text-[0.82rem] font-bold text-[#665447]">{t.piecesLabel}</label>
         <select
-          value={piecesValue}
+          value={totalPieces}
           onChange={(e) => setSlotsPerChamber(Number(e.target.value) / 3)}
           className="min-w-[190px] rounded-full border border-warm-500 bg-[#fff8ec] px-3 py-1.5 font-bold text-warm-800"
+          data-testid="pieces-select"
         >
           {SLOT_OPTIONS.map((s) => (
             <option key={s} value={s * 3}>
@@ -80,12 +80,16 @@ export default function ChamberPanel() {
       </div>
 
       {/* Chamber tabs */}
-      <nav className="mb-3 flex flex-wrap gap-2">
+      <nav className="mb-3 flex flex-wrap gap-2" data-testid="chamber-tabs">
         {CHAMBERS.map((ch) => (
           <button
             key={ch.key}
             type="button"
-            onClick={() => setActiveChamber(ch.key as ChamberKey)}
+            onClick={() => {
+              // ch.key is typed as string from ChamberConfig; it always matches ChamberKey
+              setActiveChamber(ch.key as ChamberKey);
+            }}
+            data-testid={`chamber-tab-${ch.key}`}
             className={`cursor-pointer rounded-full border px-3 py-1.5 text-[0.84rem] font-bold ${
               activeChamber === ch.key
                 ? "border-accent-2 bg-accent-2 text-white"
@@ -103,7 +107,8 @@ export default function ChamberPanel() {
           type="button"
           onClick={goToPrev}
           disabled={chamberIndex <= 0}
-          className="cursor-pointer rounded-full border border-[#d9c2a0] bg-[#fef6ea] px-4 py-2 text-sm font-bold text-[#4f4136] disabled:cursor-not-allowed disabled:opacity-45"
+          className={`${BUTTON_CLASS} disabled:cursor-not-allowed disabled:opacity-45`}
+          data-testid="prev-chamber"
         >
           {t.prevChamber}
         </button>
@@ -111,7 +116,8 @@ export default function ChamberPanel() {
           type="button"
           onClick={goToNext}
           disabled={chamberIndex >= CHAMBERS.length - 1}
-          className="cursor-pointer rounded-full border border-[#d9c2a0] bg-[#fef6ea] px-4 py-2 text-sm font-bold text-[#4f4136] disabled:cursor-not-allowed disabled:opacity-45"
+          className={`${BUTTON_CLASS} disabled:cursor-not-allowed disabled:opacity-45`}
+          data-testid="next-chamber"
         >
           {t.nextChamber}
         </button>
@@ -140,29 +146,29 @@ export default function ChamberPanel() {
         <button
           type="button"
           onClick={() => runAnalysis()}
-          className="cursor-pointer rounded-full border border-transparent bg-gradient-to-br from-[#be4033] to-[#cf7a2a] px-4 py-2.5 font-bold text-white"
+          className={BUTTON_PRIMARY_CLASS}
+          data-testid="analyze-btn"
         >
           {t.analyzeBtn}
         </button>
         <button
           type="button"
           onClick={loadDemo}
-          className="cursor-pointer rounded-full border border-[#d9c2a0] bg-[#fef6ea] px-4 py-2.5 font-bold text-[#4f4136]"
+          className={`${BUTTON_CLASS} py-2.5`}
+          data-testid="demo-btn"
         >
           {t.demoBtn}
         </button>
         <button
           type="button"
           onClick={resetAll}
-          className="cursor-pointer rounded-full border border-[#d9c2a0] bg-[#fef6ea] px-4 py-2.5 font-bold text-[#4f4136]"
+          className={`${BUTTON_CLASS} py-2.5`}
+          data-testid="reset-btn"
         >
           {t.resetBtn}
         </button>
       </div>
 
-      {report === null && (
-        <p className="mt-3 min-h-[1.3rem] text-[0.92rem] font-semibold text-[#8e2d26]" />
-      )}
     </section>
   );
 }

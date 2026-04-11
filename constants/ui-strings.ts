@@ -93,6 +93,17 @@ export interface UiStrings {
   contributionImpactShare: string;
   contributionDistance: string;
   contributionTopAxes: string;
+  heroSubtitle: string;
+  scrapeInProgress: string;
+  scrapeNoResults: string;
+  scrapeSuccess: string;
+  scrapeFailed: string;
+  scoringLinked: string;
+  unknownProfile: string;
+  unknownProfileMotto: string;
+  unknownProfileDescription: string;
+  hybridProfileMotto: string;
+  hybridProfileDescription: string;
 }
 
 export const UI_STRINGS: Record<Locale, UiStrings> = {
@@ -194,6 +205,17 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     contributionImpactShare: "Impact-aandeel",
     contributionDistance: "Afstand",
     contributionTopAxes: "Sterkste assen",
+    heroSubtitle: "Collector DNA · The Narrative Engine",
+    scrapeInProgress: "Scraping bezig...",
+    scrapeNoResults: "Geen artworks gevonden op deze URL.",
+    scrapeSuccess: "{count} artworks geïmporteerd.",
+    scrapeFailed: "Scrapen mislukt. Is de URL correct?",
+    scoringLinked: "Scoring gelinkt over {count} slots",
+    unknownProfile: "Onbekend profiel",
+    unknownProfileMotto: "-",
+    unknownProfileDescription: "Geen archetype data beschikbaar.",
+    hybridProfileMotto: "Uw verzamel-DNA balanceert tussen twee archetypen.",
+    hybridProfileDescription: "Uw scorepatroon ligt heel dicht bij zowel {primary} als {secondary}. Dit resultaat wordt bewust als gemengd profiel getoond.",
   },
   en: {
     languageLabel: "Language",
@@ -293,6 +315,17 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     contributionImpactShare: "Impact share",
     contributionDistance: "Distance",
     contributionTopAxes: "Strongest axes",
+    heroSubtitle: "Collector DNA · The Narrative Engine",
+    scrapeInProgress: "Scraping...",
+    scrapeNoResults: "No artworks found at this URL.",
+    scrapeSuccess: "{count} artworks imported.",
+    scrapeFailed: "Scrape failed. Is the URL correct?",
+    scoringLinked: "Scoring linked across {count} slots",
+    unknownProfile: "Unknown profile",
+    unknownProfileMotto: "-",
+    unknownProfileDescription: "No archetype data available.",
+    hybridProfileMotto: "Your collector DNA balances between two archetypes.",
+    hybridProfileDescription: "Your score pattern is very close to both {primary} and {secondary}. This result is deliberately shown as a mixed profile.",
   },
   fr: {
     languageLabel: "Langue",
@@ -392,5 +425,16 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     contributionImpactShare: "Part d'impact",
     contributionDistance: "Distance",
     contributionTopAxes: "Axes les plus forts",
+    heroSubtitle: "Collector DNA · The Narrative Engine",
+    scrapeInProgress: "Scraping en cours...",
+    scrapeNoResults: "Aucune oeuvre trouvée à cette URL.",
+    scrapeSuccess: "{count} oeuvres importées.",
+    scrapeFailed: "Échec du scraping. L'URL est-elle correcte ?",
+    scoringLinked: "Scoring lié sur {count} emplacements",
+    unknownProfile: "Profil inconnu",
+    unknownProfileMotto: "-",
+    unknownProfileDescription: "Aucune donnée d'archétype disponible.",
+    hybridProfileMotto: "Votre ADN de collectionneur oscille entre deux archétypes.",
+    hybridProfileDescription: "Votre patron de scores est très proche de {primary} et {secondary}. Ce résultat est volontairement affiché comme profil mixte.",
   },
 };

@@ -21,21 +21,22 @@ import {
   OMNIVORE_DISTANCE_PENALTY,
   HYBRID_MARGIN_THRESHOLD,
 } from "@/constants/archetypes";
-import { SHADOW_RULES, SHADOW_TRIGGER_THRESHOLD } from "@/constants/shadows";
+import { SHADOW_RULES } from "@/constants/shadows";
 
-function round1(v: number): number {
+export function round1(v: number): number {
   return Math.round(v * 10) / 10;
 }
 
-function round2(v: number): number {
+export function round2(v: number): number {
   return Math.round(v * 100) / 100;
 }
 
-function round3(v: number): number {
+export function round3(v: number): number {
   return Math.round(v * 1000) / 1000;
 }
 
 export function computeAverages(entries: Entry[]): AxisScores {
+  // Seed as empty object, progressively filled by the AXES loop to form a complete AxisScores
   if (entries.length === 0) {
     return AXES.reduce((acc, a) => {
       acc[a.key] = 0;
@@ -50,13 +51,10 @@ export function computeAverages(entries: Entry[]): AxisScores {
   }, {} as AxisScores);
 }
 
-function calculateArchetypeDistance(
-  averages: AxisScores,
-  scores: AxisScores
-): number {
+function euclideanDistance(a: AxisScores, b: AxisScores): number {
   return Math.sqrt(
     AXES.reduce((sum, axis) => {
-      const delta = averages[axis.key] - scores[axis.key];
+      const delta = (a[axis.key] ?? 0) - (b[axis.key] ?? 0);
       return sum + delta * delta;
     }, 0)
   );
@@ -64,7 +62,7 @@ function calculateArchetypeDistance(
 
 export function rankArchetypes(averages: AxisScores): RankedArchetype[] {
   return ARCHETYPES.map((archetype) => {
-    const rawDistance = calculateArchetypeDistance(averages, archetype.scores);
+    const rawDistance = euclideanDistance(averages, archetype.scores);
     const bias = archetype.name === OMNIVORE_NAME ? OMNIVORE_DISTANCE_PENALTY : 0;
     return {
       ...archetype,
@@ -114,14 +112,25 @@ export function calculateProfileDistribution(
   return withPct;
 }
 
-export function findClosestArchetype(averages: AxisScores): ArchetypeMatch {
+interface ArchetypeFallbackStrings {
+  unknownProfile: string;
+  unknownProfileMotto: string;
+  unknownProfileDescription: string;
+  hybridProfileMotto: string;
+  hybridProfileDescription: string;
+}
+
+export function findClosestArchetype(
+  averages: AxisScores,
+  fallback: ArchetypeFallbackStrings
+): ArchetypeMatch {
   const ranked = rankArchetypes(averages);
 
   if (ranked.length === 0) {
     return {
-      name: "Onbekend profiel",
-      motto: "-",
-      description: "Geen archetype data beschikbaar.",
+      name: fallback.unknownProfile,
+      motto: fallback.unknownProfileMotto,
+      description: fallback.unknownProfileDescription,
       distance: 0,
       adjustedDistance: 0,
       runnerUp: "",
@@ -147,8 +156,10 @@ export function findClosestArchetype(averages: AxisScores): ArchetypeMatch {
   if (margin <= HYBRID_MARGIN_THRESHOLD) {
     return {
       name: `Hybride profiel: ${primary.name} × ${secondary.name}`,
-      motto: "Uw verzamel-DNA balanceert tussen twee archetypen.",
-      description: `Uw scorepatroon ligt heel dicht bij zowel ${primary.name} als ${secondary.name}. Dit resultaat wordt bewust als gemengd profiel getoond.`,
+      motto: fallback.hybridProfileMotto,
+      description: fallback.hybridProfileDescription
+        .replace("{primary}", primary.name)
+        .replace("{secondary}", secondary.name),
       distance: round3((primary.distance + secondary.distance) / 2),
       adjustedDistance: primary.adjustedDistance,
       runnerUp: secondary.name,
@@ -180,17 +191,13 @@ export function calculateMix(
 
 export function computeShadow(
   averages: AxisScores,
-  getShadowI18n: (rule: { id: string; title: string; text: string }) => ShadowHit
+  getShadowI18n: (rule: { id: string; title: string; text: string }) => ShadowHit,
+  noShadowFallback: ShadowHit
 ): ShadowHit[] {
   const hits = SHADOW_RULES.filter((rule) => rule.check(averages));
 
   if (hits.length === 0) {
-    return [
-      {
-        title: "Geen dominante schaduwtrigger",
-        text: `Er is geen as op of onder ${SHADOW_TRIGGER_THRESHOLD.toFixed(1)}. Uw profiel toont eerder een evenwichtige mix dan een uitgesproken actieve nee.`,
-      },
-    ];
+    return [noShadowFallback];
   }
 
   return hits.map(getShadowI18n);
@@ -258,6 +265,7 @@ function clampScore(value: number): number {
 }
 
 function normalizeScores(rawScores: AxisScores): AxisScores {
+  // Seed as empty object, progressively filled by the AXES loop to form a complete AxisScores
   return AXES.reduce((acc, axis) => {
     acc[axis.key] = clampScore(Number(rawScores?.[axis.key]));
     return acc;
@@ -265,6 +273,8 @@ function normalizeScores(rawScores: AxisScores): AxisScores {
 }
 
 function averageEntriesScores(entries: Entry[]): AxisScores {
+  const MIDPOINT = 3;
+  // Seed as empty object, progressively filled by the AXES loop to form a complete AxisScores
   if (entries.length === 0) {
     return AXES.reduce((acc, axis) => {
       acc[axis.key] = 0;
@@ -272,20 +282,12 @@ function averageEntriesScores(entries: Entry[]): AxisScores {
     }, {} as AxisScores);
   }
   return AXES.reduce((acc, axis) => {
-    const total = entries.reduce((sum, e) => sum + (Number(e?.scores?.[axis.key]) || 0), 0);
+    const total = entries.reduce((sum, e) => sum + (e.scores[axis.key] ?? MIDPOINT), 0);
     acc[axis.key] = total / entries.length;
     return acc;
   }, {} as AxisScores);
 }
 
-function calculateEuclideanDistance(a: AxisScores, b: AxisScores): number {
-  return Math.sqrt(
-    AXES.reduce((sum, axis) => {
-      const delta = (a[axis.key] ?? 0) - (b[axis.key] ?? 0);
-      return sum + delta * delta;
-    }, 0)
-  );
-}
 
 export function quantile(numbers: number[], q: number): number {
   const values = numbers
@@ -351,9 +353,10 @@ export function calculateArtworkContributions(
     const withoutAverage = averageEntriesScores(otherEntries);
     const impactDistance =
       otherEntries.length > 0
-        ? calculateEuclideanDistance(averages, withoutAverage)
-        : calculateEuclideanDistance(averages, entryScores);
-    const distanceToProfile = calculateEuclideanDistance(entryScores, averages);
+        ? euclideanDistance(averages, withoutAverage)
+        : euclideanDistance(averages, entryScores);
+    const distanceToProfile = euclideanDistance(entryScores, averages);
+    // Seed as empty object, progressively filled by the AXES loop to form a complete AxisScores
     const axisContribution = AXES.reduce((acc, axis) => {
       acc[axis.key] = round3(entryScores[axis.key] / entries.length);
       return acc;
@@ -447,13 +450,15 @@ export function buildReport(
   entries: Entry[],
   getAxisLabel: (key: AxisKey) => string,
   getShadowI18n: (rule: { id: string; title: string; text: string }) => ShadowHit,
-  getArtwork: (id: string | null) => Artwork | null
+  getArtwork: (id: string | null) => Artwork | null,
+  archetypeFallback: ArchetypeFallbackStrings,
+  noShadowFallback: ShadowHit
 ): Report {
   const averages = computeAverages(entries);
-  const match = findClosestArchetype(averages);
+  const match = findClosestArchetype(averages, archetypeFallback);
   const profileDistribution = calculateProfileDistribution(averages);
   const mix = calculateMix(averages, getAxisLabel);
-  const shadow = computeShadow(averages, getShadowI18n);
+  const shadow = computeShadow(averages, getShadowI18n, noShadowFallback);
   const status = deriveStatus(averages);
   const artworkContributions = calculateArtworkContributions(entries, averages, getArtwork);
   const representative = deriveRepresentativeArtworks(artworkContributions);
