@@ -55,8 +55,7 @@ export default function ScrapeForm() {
         ref={urlRef}
         type="url"
         required
-        defaultValue="https://www.2dgalleries.com/profile/jan"
-        placeholder="https://www.2dgalleries.com/profile/jan"
+        placeholder="https://www.2dgalleries.com/profile/username"
         className={INPUT_CLASS}
         data-testid="scrape-url-input"
       />
