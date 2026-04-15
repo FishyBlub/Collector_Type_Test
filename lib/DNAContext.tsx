@@ -24,6 +24,7 @@ import { AXES } from "@/constants/axes";
 import { CHAMBERS, DEFAULT_SLOTS_PER_CHAMBER } from "@/constants/chambers";
 import { DEMO_ARTWORKS, DEMO_SCORES } from "@/constants/demo";
 import { buildReport } from "@/lib/engine";
+import { generateId } from "@/lib/utils";
 import { SHADOW_TRIGGER_THRESHOLD } from "@/constants/shadows";
 import {
   getAxisLabel,
@@ -111,7 +112,9 @@ interface DNAContextValue {
   report: Report | null;
   runAnalysis: () => Report | null;
   resetAll: () => void;
-  loadDemo: () => void;
+  loadDemo: () => Promise<void>;
+  demoLoading: boolean;
+  demoError: string | null;
 
   saveStatus: string;
 }
@@ -132,6 +135,8 @@ export function DNAProvider({ children }: { children: ReactNode }) {
   const [activeChamber, setActiveChamber] = useState<ChamberKey>("Hart");
   const [report, setReport] = useState<Report | null>(null);
   const [saveStatus, setSaveStatus] = useState("");
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [demoError, setDemoError] = useState<string | null>(null);
   const [axisVariants, setAxisVariants] = useState<Record<AxisKey, QuestionVariant>>(
     // Seed as empty object, progressively filled by the AXES loop
     () => AXES.reduce((acc, a) => { acc[a.key] = "primary"; return acc; }, {} as Record<AxisKey, QuestionVariant>)
@@ -332,28 +337,70 @@ export function DNAProvider({ children }: { children: ReactNode }) {
     try { localStorage.removeItem(STORAGE_KEY); } catch { /* */ }
   }, []);
 
-  const loadDemo = useCallback(() => {
-    setArtworks(DEMO_ARTWORKS);
-    setSlotsPerChamber(5);
-    setActiveChamber("Hart");
+  const applyDemoArtworks = useCallback(
+    (demoArtworks: { id: string; artworkTitle: string }[]) => {
+      setSlotsPerChamber(5);
+      setActiveChamber("Hart");
 
-    const newEntries = createInitialEntries();
-    const chamberKeys: ChamberKey[] = ["Hart", "Rede", "Jacht"];
-    let artIdx = 0;
-    for (const ck of chamberKeys) {
-      for (let slot = 1; slot <= 5; slot++) {
-        const entry = newEntries.find((e) => e.chamber === ck && e.slot === slot);
-        if (entry && artIdx < DEMO_ARTWORKS.length) {
-          entry.selectedArtworkId = DEMO_ARTWORKS[artIdx].id;
-          entry.objectName = DEMO_ARTWORKS[artIdx].artworkTitle;
-          entry.scores = DEMO_SCORES[artIdx];
-          artIdx++;
+      const newEntries = createInitialEntries();
+      const chamberKeys: ChamberKey[] = ["Hart", "Rede", "Jacht"];
+      let artIdx = 0;
+      for (const ck of chamberKeys) {
+        for (let slot = 1; slot <= 5; slot++) {
+          const entry = newEntries.find((e) => e.chamber === ck && e.slot === slot);
+          if (entry && artIdx < demoArtworks.length) {
+            entry.selectedArtworkId = demoArtworks[artIdx].id;
+            entry.objectName = demoArtworks[artIdx].artworkTitle;
+            entry.scores = DEMO_SCORES[artIdx] ?? entry.scores;
+            artIdx++;
+          }
         }
       }
+      setEntries(newEntries);
+      setReport(null);
+    },
+    [],
+  );
+
+  const loadDemo = useCallback(async () => {
+    setDemoLoading(true);
+    setDemoError(null);
+
+    try {
+      const res = await fetch("/api/premium-pick", { method: "POST" });
+      if (res.ok) {
+        const data: unknown = await res.json();
+        if (
+          typeof data === "object" &&
+          data !== null &&
+          "artworks" in data &&
+          Array.isArray((data as Record<string, unknown>).artworks) &&
+          ((data as Record<string, unknown>).artworks as unknown[]).length >= 15
+        ) {
+          type RawArtwork = { title?: string; artist?: string; imageUrl?: string };
+          const raw = (data as { artworks: RawArtwork[] }).artworks;
+          const premiumArtworks = raw.map((a) => ({
+            id: generateId(),
+            artworkTitle: a.title || "Untitled",
+            artistName: a.artist || "",
+            imageUrl: a.imageUrl || "",
+            source: "2DGalleries",
+          }));
+          setArtworks(premiumArtworks);
+          applyDemoArtworks(premiumArtworks);
+          return;
+        }
+      }
+      // API failed or returned insufficient artworks — fall back to static demo
+      throw new Error("premium-pick unavailable");
+    } catch {
+      setDemoError(t.demoPremiumFailed);
+      setArtworks(DEMO_ARTWORKS);
+      applyDemoArtworks(DEMO_ARTWORKS);
+    } finally {
+      setDemoLoading(false);
     }
-    setEntries(newEntries);
-    setReport(null);
-  }, []);
+  }, [applyDemoArtworks, t.demoPremiumFailed]);
 
   const value = useMemo<DNAContextValue>(
     () => ({
@@ -382,6 +429,8 @@ export function DNAProvider({ children }: { children: ReactNode }) {
       runAnalysis,
       resetAll,
       loadDemo,
+      demoLoading,
+      demoError,
       saveStatus,
     }),
     [
@@ -391,7 +440,7 @@ export function DNAProvider({ children }: { children: ReactNode }) {
       updateScore, assignArtwork, clearEntryArtwork, setEntryObjectName,
       axisVariants, toggleAxisVariant,
       getArtworkById, getActiveEntries, getMissingCount,
-      report, runAnalysis, resetAll, loadDemo, saveStatus,
+      report, runAnalysis, resetAll, loadDemo, demoLoading, demoError, saveStatus,
     ]
   );
 

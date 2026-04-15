@@ -125,6 +125,113 @@ export function dedupeEntries(entries: ArtworkEntry[]): ArtworkEntry[] {
   return result;
 }
 
+export const PREMIUM_MEMBERS_URL =
+  "https://www.2dgalleries.com/members-galleries?premium=1&lang=en";
+
+export function extractPremiumProfileSlugs(html: string): string[] {
+  // Members page links profiles as: href="/browse/profile?id=291" title="Zibbhebu"
+  // Extract title attribute from those anchors; lowercased title is the profile slug.
+  const hrefFirst = /href="\/browse\/profile\?id=\d+"[^>]*title="([^"]+)"/gi;
+  const titleFirst = /title="([^"]+)"[^>]*href="\/browse\/profile\?id=\d+"/gi;
+
+  const seen = new Set<string>();
+  const slugs: string[] = [];
+
+  for (const m of [...html.matchAll(hrefFirst), ...html.matchAll(titleFirst)]) {
+    const slug = m[1].toLowerCase().trim();
+    if (slug.length > 1 && !seen.has(slug)) {
+      seen.add(slug);
+      slugs.push(slug);
+    }
+  }
+
+  return slugs;
+}
+
+export async function scrapeProfileUpTo(
+  profileUrl: URL,
+  limit: number,
+): Promise<ArtworkEntry[]> {
+  profileUrl.searchParams.set("lang", "en");
+  const profileHtml = await fetchHtml(profileUrl.href);
+  const userId = extractUserId(profileHtml);
+
+  const collected: ArtworkEntry[] = [];
+  const visitedOffsets = new Set<number>();
+  let currentOffset = 0;
+  let iteration = 0;
+
+  while (iteration < 100) {
+    if (visitedOffsets.has(currentOffset)) break;
+    visitedOffsets.add(currentOffset);
+
+    const pageUrl =
+      `${TWO_DG_BASE_URL}/userartworks/${userId}` +
+      `?uid=${userId}&offset=${currentOffset}&ajx=1&pager=1&hr=1&pid=${userId}`;
+    const pageHtml = await fetchHtml(pageUrl);
+
+    const pageEntries = splitArtworkBlocks(pageHtml)
+      .map(parseArtworkBlock)
+      .filter((e): e is ArtworkEntry => e !== null);
+
+    if (pageEntries.length === 0) break;
+
+    collected.push(...pageEntries);
+
+    if (dedupeEntries(collected).length >= limit) break;
+
+    const nextOffset = findNextOffset(pageHtml, currentOffset);
+    if (nextOffset === null) break;
+
+    currentOffset = nextOffset;
+    iteration++;
+  }
+
+  return dedupeEntries(collected);
+}
+
+function shuffleArray<T>(arr: T[]): T[] {
+  const result = [...arr];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j] as T, result[i] as T];
+  }
+  return result;
+}
+
+export class NoPremiumProfileError extends Error {
+  constructor() {
+    super("No premium profile with 15+ artworks found after max attempts.");
+    this.name = "NoPremiumProfileError";
+  }
+}
+
+export async function pickPremiumProfileWithMinArtworks(): Promise<{
+  profileUrl: string;
+  entries: ArtworkEntry[];
+}> {
+  const membersHtml = await fetchHtml(PREMIUM_MEMBERS_URL);
+  const slugs = extractPremiumProfileSlugs(membersHtml);
+
+  if (slugs.length === 0) throw new NoPremiumProfileError();
+
+  // Shuffle so repeated calls don't always hit the same profiles first,
+  // but try every slug before giving up.
+  for (const slug of shuffleArray(slugs)) {
+    try {
+      const profileUrl = new URL(`${TWO_DG_BASE_URL}/profile/${slug}`);
+      const entries = await scrapeProfileUpTo(profileUrl, 15);
+      if (entries.length >= 15) {
+        return { profileUrl: profileUrl.href, entries: entries.slice(0, 15) };
+      }
+    } catch {
+      // try next candidate
+    }
+  }
+
+  throw new NoPremiumProfileError();
+}
+
 export async function scrapeProfile(profileUrl: URL): Promise<ArtworkEntry[]> {
   profileUrl.searchParams.set("lang", "en");
   const profileHtml = await fetchHtml(profileUrl.href);

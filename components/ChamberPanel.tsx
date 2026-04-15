@@ -19,6 +19,8 @@ export default function ChamberPanel() {
     saveStatus,
     runAnalysis,
     loadDemo,
+    demoLoading,
+    demoError,
     resetAll,
   } = useDNA();
 
@@ -153,11 +155,12 @@ export default function ChamberPanel() {
         </button>
         <button
           type="button"
-          onClick={loadDemo}
-          className={`${BUTTON_CLASS} py-2.5`}
+          onClick={() => { void loadDemo(); }}
+          disabled={demoLoading}
+          className={`${BUTTON_CLASS} py-2.5 disabled:cursor-not-allowed disabled:opacity-45`}
           data-testid="demo-btn"
         >
-          {t.demoBtn}
+          {demoLoading ? t.demoLoading : t.demoBtn}
         </button>
         <button
           type="button"
@@ -168,6 +171,12 @@ export default function ChamberPanel() {
           {t.resetBtn}
         </button>
       </div>
+
+      {demoError && (
+        <p className="mt-2 rounded-lg bg-warn-bg px-2 py-1.5 text-[0.78rem] text-warn-text" data-testid="demo-error">
+          {demoError}
+        </p>
+      )}
 
     </section>
   );
