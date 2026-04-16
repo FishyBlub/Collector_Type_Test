@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "www.2dgalleries.com",
-        pathname: "/planches/**",
+        pathname: "/**",
       },
     ],
   },
