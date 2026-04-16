@@ -106,9 +106,6 @@ export interface UiStrings {
   hybridProfileDescription: string;
   demoLoading: string;
   demoPremiumFailed: string;
-  premiumImportBtn: string;
-  premiumImportSuccess: string;
-  premiumImportFailed: string;
 }
 
 export const UI_STRINGS: Record<Locale, UiStrings> = {
@@ -223,9 +220,6 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     hybridProfileDescription: "Uw scorepatroon ligt heel dicht bij zowel {primary} als {secondary}. Dit resultaat wordt bewust als gemengd profiel getoond.",
     demoLoading: "Profiel laden...",
     demoPremiumFailed: "Geen geschikt premium profiel gevonden. Statisch voorbeeldprofiel geladen.",
-    premiumImportBtn: "Importeer premium profiel (15+ werken)",
-    premiumImportSuccess: "{count} artworks geïmporteerd van {url}",
-    premiumImportFailed: "Geen geschikt premium profiel gevonden.",
   },
   en: {
     languageLabel: "Language",
@@ -338,9 +332,6 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     hybridProfileDescription: "Your score pattern is very close to both {primary} and {secondary}. This result is deliberately shown as a mixed profile.",
     demoLoading: "Loading profile...",
     demoPremiumFailed: "No suitable premium profile found. Static demo profile loaded.",
-    premiumImportBtn: "Import premium profile (15+ works)",
-    premiumImportSuccess: "{count} artworks imported from {url}",
-    premiumImportFailed: "No suitable premium profile found.",
   },
   fr: {
     languageLabel: "Langue",
@@ -453,8 +444,5 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     hybridProfileDescription: "Votre patron de scores est très proche de {primary} et {secondary}. Ce résultat est volontairement affiché comme profil mixte.",
     demoLoading: "Chargement du profil...",
     demoPremiumFailed: "Aucun profil premium adapté trouvé. Profil démo statique chargé.",
-    premiumImportBtn: "Importer un profil premium (15+ œuvres)",
-    premiumImportSuccess: "{count} œuvres importées depuis {url}",
-    premiumImportFailed: "Aucun profil premium adapté trouvé.",
   },
 };

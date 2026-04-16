@@ -10,8 +10,6 @@ export default function ScrapeForm() {
 
   const urlRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<{ type: "ok" | "warn" | "error" | "loading" | ""; msg: string }>({ type: "", msg: "" });
-  const [premiumLoading, setPremiumLoading] = useState(false);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const url = urlRef.current?.value.trim();
@@ -48,42 +46,6 @@ export default function ScrapeForm() {
     }
   };
 
-  const handlePremiumImport = async () => {
-    setPremiumLoading(true);
-    setStatus({ type: "loading", msg: t.scrapeInProgress });
-
-    try {
-      const res = await fetch("/api/premium-pick", { method: "POST" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-
-      if (!data.artworks?.length) {
-        setStatus({ type: "warn", msg: t.premiumImportFailed });
-        return;
-      }
-
-      const batch: Artwork[] = (data.artworks as { title?: string; artist?: string; imageUrl?: string }[]).map((a) => ({
-        id: generateId(),
-        artworkTitle: a.title || "Untitled",
-        artistName: a.artist || "",
-        imageUrl: a.imageUrl || "",
-        source: "2DGalleries",
-      }));
-      addArtworks(batch);
-      const profileUrl = typeof data.profileUrl === "string" ? data.profileUrl : "";
-      setStatus({
-        type: "ok",
-        msg: t.premiumImportSuccess
-          .replace("{count}", String(batch.length))
-          .replace("{url}", profileUrl),
-      });
-    } catch {
-      setStatus({ type: "error", msg: t.premiumImportFailed });
-    } finally {
-      setPremiumLoading(false);
-    }
-  };
-
   return (
     <form onSubmit={handleSubmit} className={FORM_CLASS} data-testid="scrape-form">
       <h3 className="m-0 mb-0.5 text-base">{t.scrapeFormTitle}</h3>
@@ -98,15 +60,6 @@ export default function ScrapeForm() {
       />
       <button type="submit" className={BUTTON_CLASS} data-testid="scrape-submit">
         {t.scrapeSubmit}
-      </button>
-      <button
-        type="button"
-        onClick={() => { void handlePremiumImport(); }}
-        disabled={premiumLoading}
-        className={`${BUTTON_CLASS} disabled:cursor-not-allowed disabled:opacity-45`}
-        data-testid="premium-import-btn"
-      >
-        {premiumLoading ? t.demoLoading : t.premiumImportBtn}
       </button>
       {status.type && (
         <p
