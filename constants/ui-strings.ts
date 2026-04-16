@@ -60,7 +60,6 @@ export interface UiStrings {
   distanceHybrid: string;
   runnerUp: string;
   margin: string;
-  autosaveActive: string;
   statusHighIntensity: string;
   statusAnchorCurator: string;
   statusMarketHunter: string;
@@ -172,7 +171,6 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     distanceHybrid: "Indicatieve afstand tot dubbelprofiel",
     runnerUp: "runner-up",
     margin: "marge",
-    autosaveActive: "Autosave actief.",
     statusHighIntensity: "Hoog-intensieve verkenner",
     statusAnchorCurator: "Verankerende curator",
     statusMarketHunter: "Marktgedreven jager",
@@ -284,7 +282,6 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     distanceHybrid: "Indicative distance to dual profile",
     runnerUp: "runner-up",
     margin: "margin",
-    autosaveActive: "Autosave active.",
     statusHighIntensity: "High-Intensity Explorer",
     statusAnchorCurator: "Anchor Curator",
     statusMarketHunter: "Market-Driven Hunter",
@@ -396,7 +393,6 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     distanceHybrid: "Distance indicative au profil double",
     runnerUp: "deuxième",
     margin: "écart",
-    autosaveActive: "Autosave actif.",
     statusHighIntensity: "Explorateur Haute Intensité",
     statusAnchorCurator: "Curateur d'Ancrage",
     statusMarketHunter: "Chasseur Orienté Marché",

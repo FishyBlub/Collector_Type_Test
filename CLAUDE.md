@@ -81,7 +81,7 @@ All application state lives in `DNAContext` (`lib/DNAContext.tsx`):
 - `report` — generated analysis output
 - `axisVariants` — primary or alternate question per axis
 
-State is auto-saved to `localStorage` (key `collector_dna_entries_v1`) with a 300ms debounce. Hydration is client-side only to avoid SSR mismatches.
+State is session-only — there is no localStorage persistence. Every page load starts from a clean slate. Persistence will be revisited when the UX journey is more mature.
 
 **Data fetching is simple `fetch` + local state.** Do not introduce SWR or React Query — this project explicitly avoids them.
 

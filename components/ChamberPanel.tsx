@@ -16,7 +16,6 @@ export default function ChamberPanel() {
     setSlotsPerChamber,
     activeChamber,
     setActiveChamber,
-    saveStatus,
     runAnalysis,
     loadDemo,
     demoLoading,
@@ -76,9 +75,6 @@ export default function ChamberPanel() {
         <p className="m-0 text-[0.85rem] text-[#605246]">
           {t.entryHint.replace("{n}", String(chamberIndex + 1))}
         </p>
-        {saveStatus && (
-          <p className="m-0 text-[0.85rem] font-semibold text-[#1f6a62]">{saveStatus}</p>
-        )}
       </div>
 
       {/* Chamber tabs */}

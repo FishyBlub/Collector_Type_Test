@@ -4,9 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -33,9 +31,6 @@ import {
   getUiStrings,
 } from "@/lib/i18n";
 
-const STORAGE_KEY = "collector_dna_entries_v1";
-const LOCALE_KEY = "collector_dna_locale_v1";
-const AUTOSAVE_DELAY = 300;
 
 function defaultScores(): AxisScores {
   // Seed as empty object, progressively filled by the AXES loop to form a complete AxisScores
@@ -62,24 +57,6 @@ function createInitialEntries(): Entry[] {
   return entries;
 }
 
-interface SavedState {
-  entries: Entry[];
-  artworks: Artwork[];
-  slotsPerChamber: number;
-  activeChamber: ChamberKey;
-}
-
-function isValidSavedState(data: unknown): data is SavedState {
-  if (typeof data !== "object" || data === null) return false;
-  // Narrowed to non-null object above; cast to index into properties
-  const obj = data as Record<string, unknown>;
-  return (
-    Array.isArray(obj.entries) &&
-    Array.isArray(obj.artworks) &&
-    typeof obj.slotsPerChamber === "number" &&
-    typeof obj.activeChamber === "string"
-  );
-}
 
 interface DNAContextValue {
   locale: Locale;
@@ -115,8 +92,6 @@ interface DNAContextValue {
   loadDemo: () => Promise<void>;
   demoLoading: boolean;
   demoError: string | null;
-
-  saveStatus: string;
 }
 
 const DNACtx = createContext<DNAContextValue | null>(null);
@@ -134,7 +109,6 @@ export function DNAProvider({ children }: { children: ReactNode }) {
   const [slotsPerChamber, setSlotsPerChamber] = useState(DEFAULT_SLOTS_PER_CHAMBER);
   const [activeChamber, setActiveChamber] = useState<ChamberKey>("Hart");
   const [report, setReport] = useState<Report | null>(null);
-  const [saveStatus, setSaveStatus] = useState("");
   const [demoLoading, setDemoLoading] = useState(false);
   const [demoError, setDemoError] = useState<string | null>(null);
   const [axisVariants, setAxisVariants] = useState<Record<AxisKey, QuestionVariant>>(
@@ -142,64 +116,10 @@ export function DNAProvider({ children }: { children: ReactNode }) {
     () => AXES.reduce((acc, a) => { acc[a.key] = "primary"; return acc; }, {} as Record<AxisKey, QuestionVariant>)
   );
 
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [hydrated, setHydrated] = useState(false);
-
   const t = useMemo(() => getUiStrings(locale), [locale]);
-
-  useEffect(() => {
-    try {
-      const savedLocale = localStorage.getItem(LOCALE_KEY);
-      if (savedLocale && ["nl", "en", "fr"].includes(savedLocale)) {
-        // Validated by the includes check above
-        setLocaleState(savedLocale as Locale);
-      }
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed: unknown = JSON.parse(raw);
-        if (isValidSavedState(parsed)) {
-          if (parsed.entries.length) setEntries(parsed.entries);
-          if (parsed.artworks.length) setArtworks(parsed.artworks);
-          if (parsed.slotsPerChamber) setSlotsPerChamber(parsed.slotsPerChamber);
-          if (parsed.activeChamber) setActiveChamber(parsed.activeChamber);
-        }
-      }
-    } catch {
-      // ignore corrupt localStorage
-    }
-    setHydrated(true);
-  }, []);
-
-  const scheduleSave = useCallback(
-    (msg?: string) => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => {
-        try {
-          const data: SavedState = {
-            entries,
-            artworks,
-            slotsPerChamber,
-            activeChamber,
-          };
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-          setSaveStatus(msg ?? t.autosaveActive);
-        } catch {
-          // ignore quota errors
-        }
-      }, AUTOSAVE_DELAY);
-    },
-    [entries, artworks, slotsPerChamber, activeChamber, t.autosaveActive]
-  );
-
-  // Only autosave after hydration is committed to state, preventing
-  // overwrite of localStorage with default values on first render.
-  useEffect(() => {
-    if (hydrated) scheduleSave();
-  }, [hydrated, entries, artworks, slotsPerChamber, activeChamber, scheduleSave]);
 
   const setLocale = useCallback((l: Locale) => {
     setLocaleState(l);
-    try { localStorage.setItem(LOCALE_KEY, l); } catch { /* */ }
   }, []);
 
   const addArtwork = useCallback((a: Artwork) => {
@@ -334,7 +254,6 @@ export function DNAProvider({ children }: { children: ReactNode }) {
     setSlotsPerChamber(DEFAULT_SLOTS_PER_CHAMBER);
     setActiveChamber("Hart");
     setReport(null);
-    try { localStorage.removeItem(STORAGE_KEY); } catch { /* */ }
   }, []);
 
   const applyDemoArtworks = useCallback(
@@ -365,6 +284,13 @@ export function DNAProvider({ children }: { children: ReactNode }) {
   const loadDemo = useCallback(async () => {
     setDemoLoading(true);
     setDemoError(null);
+
+    // User already has a full library from a previous scrape — reuse it directly
+    if (artworks.length >= 15) {
+      applyDemoArtworks(artworks.slice(0, 15));
+      setDemoLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/premium-pick", { method: "POST" });
@@ -400,7 +326,7 @@ export function DNAProvider({ children }: { children: ReactNode }) {
     } finally {
       setDemoLoading(false);
     }
-  }, [applyDemoArtworks, t.demoPremiumFailed]);
+  }, [applyDemoArtworks, artworks, t.demoPremiumFailed]);
 
   const value = useMemo<DNAContextValue>(
     () => ({
@@ -431,7 +357,6 @@ export function DNAProvider({ children }: { children: ReactNode }) {
       loadDemo,
       demoLoading,
       demoError,
-      saveStatus,
     }),
     [
       locale, setLocale, t,
@@ -440,7 +365,7 @@ export function DNAProvider({ children }: { children: ReactNode }) {
       updateScore, assignArtwork, clearEntryArtwork, setEntryObjectName,
       axisVariants, toggleAxisVariant,
       getArtworkById, getActiveEntries, getMissingCount,
-      report, runAnalysis, resetAll, loadDemo, demoLoading, demoError, saveStatus,
+      report, runAnalysis, resetAll, loadDemo, demoLoading, demoError,
     ]
   );
 
