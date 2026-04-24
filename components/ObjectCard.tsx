@@ -118,7 +118,7 @@ export default function ObjectCard({ entry, linkedCount }: Props) {
                     className="w-full rounded-lg border border-card-border bg-card-inner px-2 py-1 text-[0.75rem] text-ink outline-none focus:border-warm-300"
                   />
                 </div>
-                <ul className="max-h-[250px] overflow-y-scroll p-1.5 pt-0" role="listbox">
+                <ul className="max-h-[320px] overflow-y-scroll p-1.5 pt-0" role="listbox">
                   {filteredArtworks.length === 0 ? (
                     <li className="px-2 py-1.5 text-[0.72rem] text-[#8a7b6b]" role="option" aria-selected={false}>
                       {t.emptyArtworksSearch}
@@ -136,8 +136,20 @@ export default function ObjectCard({ entry, linkedCount }: Props) {
                           className="w-full cursor-pointer rounded-lg px-2 py-1.5 text-left text-[0.75rem] text-btn-text hover:bg-img-bg"
                           data-testid={`dropdown-option-${a.id}`}
                         >
-                          <span className="font-bold">{a.artworkTitle}</span>
-                          <span className="text-[#8a7b6b]"> — {a.artistName || "?"}</span>
+                          <div className="flex items-center gap-2">
+                            <Image
+                              src={a.imageUrl || PLACEHOLDER}
+                              alt={a.artworkTitle}
+                              width={40}
+                              height={40}
+                              className="shrink-0 rounded-md border border-img-border bg-img-bg object-cover"
+                              unoptimized={!a.imageUrl}
+                            />
+                            <div className="min-w-0">
+                              <span className="block truncate font-bold">{a.artworkTitle}</span>
+                              <span className="block truncate text-[0.7rem] text-[#8a7b6b]">{a.artistName || "?"}</span>
+                            </div>
+                          </div>
                         </button>
                       </li>
                     ))

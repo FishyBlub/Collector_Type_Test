@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 import { useDNA } from "@/lib/DNAContext";
 import { PANEL_CLASS, FORM_CLASS, BUTTON_SMALL_CLASS } from "@/lib/utils";
 import ArtworkCard from "./ArtworkCard";
-import ManualEntryForm from "./ManualEntryForm";
 import PdfUploadForm from "./PdfUploadForm";
 import ScrapeForm from "./ScrapeForm";
 import ImageUploadForm from "./ImageUploadForm";
@@ -66,10 +65,9 @@ export default function LibraryPanel() {
 
       <div className="grid gap-3 lg:grid-cols-[minmax(250px,320px)_minmax(0,1fr)]">
         <div className="grid gap-2.5">
-          <ManualEntryForm />
+          <ImageUploadForm />
           <PdfUploadForm />
           <ScrapeForm />
-          <ImageUploadForm />
         </div>
 
         <div className={FORM_CLASS}>
