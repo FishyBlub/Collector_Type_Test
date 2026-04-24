@@ -7,6 +7,7 @@ import ArtworkCard from "./ArtworkCard";
 import ManualEntryForm from "./ManualEntryForm";
 import PdfUploadForm from "./PdfUploadForm";
 import ScrapeForm from "./ScrapeForm";
+import ImageUploadForm from "./ImageUploadForm";
 
 export default function LibraryPanel() {
   const {
@@ -68,6 +69,7 @@ export default function LibraryPanel() {
           <ManualEntryForm />
           <PdfUploadForm />
           <ScrapeForm />
+          <ImageUploadForm />
         </div>
 
         <div className={FORM_CLASS}>

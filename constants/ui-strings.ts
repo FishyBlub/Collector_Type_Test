@@ -105,6 +105,9 @@ export interface UiStrings {
   hybridProfileDescription: string;
   demoLoading: string;
   demoPremiumFailed: string;
+  imageUploadFormTitle: string;
+  imageUploadSubmit: string;
+  imageUploadSuccess: string;
 }
 
 export const UI_STRINGS: Record<Locale, UiStrings> = {
@@ -218,6 +221,9 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     hybridProfileDescription: "Uw scorepatroon ligt heel dicht bij zowel {primary} als {secondary}. Dit resultaat wordt bewust als gemengd profiel getoond.",
     demoLoading: "Profiel laden...",
     demoPremiumFailed: "Geen geschikt premium profiel gevonden. Statisch voorbeeldprofiel geladen.",
+    imageUploadFormTitle: "Afbeeldingen uploaden",
+    imageUploadSubmit: "Selecteer afbeeldingen",
+    imageUploadSuccess: "{count} afbeelding(en) toegevoegd",
   },
   en: {
     languageLabel: "Language",
@@ -329,6 +335,9 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     hybridProfileDescription: "Your score pattern is very close to both {primary} and {secondary}. This result is deliberately shown as a mixed profile.",
     demoLoading: "Loading profile...",
     demoPremiumFailed: "No suitable premium profile found. Static demo profile loaded.",
+    imageUploadFormTitle: "Upload images",
+    imageUploadSubmit: "Select images",
+    imageUploadSuccess: "{count} image(s) added",
   },
   fr: {
     languageLabel: "Langue",
@@ -440,5 +449,8 @@ export const UI_STRINGS: Record<Locale, UiStrings> = {
     hybridProfileDescription: "Votre patron de scores est très proche de {primary} et {secondary}. Ce résultat est volontairement affiché comme profil mixte.",
     demoLoading: "Chargement du profil...",
     demoPremiumFailed: "Aucun profil premium adapté trouvé. Profil démo statique chargé.",
+    imageUploadFormTitle: "Téléverser des images",
+    imageUploadSubmit: "Sélectionner des images",
+    imageUploadSuccess: "{count} image(s) ajoutée(s)",
   },
 };
